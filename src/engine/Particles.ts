@@ -8,6 +8,7 @@ import * as DrawUtil from './Util/DrawUtil';
 import * as Traits from './Traits/Index';
 import { Configurable } from './Configurable';
 import { Random } from './Math/Random';
+import { ManagedSprite } from './Drawing/Index';
 
 /**
  * An enum that represents the types of emitter nozzles
@@ -52,7 +53,7 @@ export class ParticleImpl {
 
   public emitter: ParticleEmitter = null;
   public particleSize: number = 5;
-  public particleSprite: Sprite = null;
+  public particleSprite: Sprite | ManagedSprite = null;
 
   public startSize: number;
   public endSize: number;
@@ -182,7 +183,7 @@ export interface IParticleArgs extends Partial<ParticleImpl> {
   particleRotationalVelocity?: number;
   currentRotation?: number;
   particleSize?: number;
-  particleSprite?: Sprite;
+  particleSprite?: Sprite | ManagedSprite;
 }
 
 /**
