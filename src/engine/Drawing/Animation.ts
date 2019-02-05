@@ -1,4 +1,3 @@
-import { Sprite } from './Sprite';
 import { IAnimationArgs } from '../Drawing/Animation';
 import * as Effects from './SpriteEffects';
 import { Color } from './Color';
@@ -18,7 +17,7 @@ export class AnimationImpl implements IDrawable {
    * The sprite frames to play, in order. See [[SpriteSheet.getAnimationForAll]] to quickly
    * generate an [[Animation]].
    */
-  public sprites: Sprite[] = [];
+  public sprites: ManagedSprite[] = [];
 
   /**
    * Duration to show each frame (in milliseconds)
@@ -268,7 +267,7 @@ export class AnimationImpl implements IDrawable {
   public draw(ctx: CanvasRenderingContext2D, x: number, y: number) {
     this.tick();
     this._updateValues();
-    var currSprite: Sprite;
+    var currSprite: ManagedSprite;
     if (this.currentFrame < this.sprites.length) {
       currSprite = this.sprites[this.currentFrame];
       if (this.flipVertical) {
@@ -308,7 +307,7 @@ export class AnimationImpl implements IDrawable {
  */
 export interface IAnimationArgs extends Partial<AnimationImpl> {
   engine: Engine;
-  sprites: Sprite[];
+  sprites: ManagedSprite[];
   speed: number;
   loop?: boolean;
   anchor?: Vector;

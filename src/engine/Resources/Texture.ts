@@ -1,6 +1,5 @@
 import { Resource } from './Resource';
 import { Promise } from '../Promises';
-import { Sprite } from '../Drawing/Sprite';
 import { TextureManager, ManagedSprite } from '../Drawing/Index';
 /**
  * The [[Texture]] object allows games built in Excalibur to load image resources.

@@ -75,7 +75,7 @@ game.add(heart);
 // Turn on debug diagnostics
 game.isDebug = false;
 //var blockSprite = new ex.Sprite(imageBlocks, 0, 0, 65, 49);
-var blockSprite = new ex.Sprite({
+var blockSprite = new ex.ManagedSprite({
   image: imageBlocks,
   x: 0,
   y: 0,

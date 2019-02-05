@@ -1,6 +1,5 @@
 import { Resource } from './Resource';
 import { Promise } from '../Promises';
-import { Sprite } from '../Drawing/Sprite';
 import { Texture } from './Texture';
 import { Color } from '../Drawing/Color';
 import { SpriteSheet } from '../Drawing/SpriteSheet';

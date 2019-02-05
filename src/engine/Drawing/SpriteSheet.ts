@@ -1,4 +1,4 @@
-import { Sprite, ISpriteArgs } from './Sprite';
+import { ISpriteArgs } from './Sprite';
 import { Animation } from './Animation';
 import { Color } from './Color';
 import * as Effects from './SpriteEffects';
@@ -9,7 +9,6 @@ import { Logger } from '../Util/Log';
 import { TextAlign, BaseAlign } from '../Label';
 import { Configurable } from '../Configurable';
 import { ManagedSprite } from './Index';
-import { TextureManager } from './TextureManager';
 
 /**
  * @hidden
@@ -159,14 +158,15 @@ export class SpriteSheetImpl {
   public getAnimationByCoords(engine: Engine, spriteCoordinates: ISpriteArgs[], speed: number): Animation {
     let maxWidth: number = 0;
     let maxHeight: number = 0;
-    let sprites: Sprite[] = new Array(spriteCoordinates.length);
+    let sprites: ManagedSprite[] = new Array(spriteCoordinates.length);
     for (let i = 0; i < spriteCoordinates.length; i++) {
       let coord = spriteCoordinates[i];
       // no need to pass image again if using a spritesheet
       coord.image = coord.image || this.image;
       maxWidth = Math.max(maxWidth, coord.drawWidth);
       maxHeight = Math.max(maxHeight, coord.drawHeight);
-      sprites[i] = new Sprite(coord);
+      const id = coord.image.id;
+      sprites[i] = Texture.manager.createSprite(coord.x, coord.y, maxWidth, maxHeight, id); // new Sprite(coord);
     }
 
     let anim = new Animation(engine, sprites, speed);

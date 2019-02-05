@@ -46,6 +46,7 @@ import * as Effects from './Drawing/SpriteEffects';
 import * as Util from './Util/Util';
 import * as Events from './Events';
 import { IPointerEvents } from './Interfaces/IPointerEvents';
+import { ManagedSprite } from './Drawing/Index';
 
 export type PointerEventName =
   | 'pointerdragstart'
@@ -927,6 +928,7 @@ export class ActorImpl extends Class implements IActionable, IEvented, IPointerE
    * Adds a whole sprite as the "default" drawing. Set a drawing using [[setDrawing]].
    */
   public addDrawing(sprite: Sprite): void;
+  public addDrawing(sprite: ManagedSprite): void;
   /**
    * Adds a drawing to the list of available drawings for an actor. Set a drawing using [[setDrawing]].
    * @param key     The key to associate with a drawing for this actor
@@ -941,7 +943,7 @@ export class ActorImpl extends Class implements IActionable, IEvented, IPointerE
       }
       this._effectsDirty = true;
     } else {
-      if (arguments[0] instanceof Sprite) {
+      if (arguments[0] instanceof Sprite || arguments[0] instanceof ManagedSprite) {
         this.addDrawing('default', arguments[0]);
       }
       if (arguments[0] instanceof Texture) {

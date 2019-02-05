@@ -3,6 +3,7 @@ import { IDrawable } from '../Interfaces/IDrawable';
 import { ISpriteEffect } from './SpriteEffects';
 import { Vector } from '../Algebra';
 import { clamp } from '../Util/Util';
+import { ISpriteArgs } from './Sprite';
 
 // TODO Needs to implement IDrawable
 export class ManagedSprite implements IDrawable {
@@ -13,6 +14,16 @@ export class ManagedSprite implements IDrawable {
   private _sy: number;
   private _atlas: TextureManager;
 
+  constructor(config: ISpriteArgs);
+  constructor(image: Texture, x: number, y: number, width: number, height: number);
+  constructor(
+    imageOrConfigOrAtlas: Texture | ISpriteArgs | TextureManager,
+    sx?: number,
+    sy?: number,
+    width?: number,
+    height?: number,
+    id?: number
+  );
   /**
    *
    * @param atlas
@@ -22,13 +33,31 @@ export class ManagedSprite implements IDrawable {
    * @param width
    * @param height
    */
-  constructor(atlas: TextureManager, id: number, sx: number, sy: number, width: number, height: number) {
-    this.id = id;
-    this._width = width;
-    this._height = height;
-    this._sx = sx;
-    this._sy = sy;
-    this._atlas = atlas;
+  constructor(
+    imageOrConfigOrAtlas: Texture | ISpriteArgs | TextureManager,
+    sx?: number,
+    sy?: number,
+    width?: number,
+    height?: number,
+    id?: number
+  ) {
+    if (imageOrConfigOrAtlas instanceof TextureManager) {
+      this.id = id;
+      this._width = width;
+      this._height = height;
+      this._sx = sx;
+      this._sy = sy;
+      this._atlas = imageOrConfigOrAtlas;
+    } else if (imageOrConfigOrAtlas instanceof Texture) {
+      return Texture.manager.createSprite(sx, sy, width, height, imageOrConfigOrAtlas.id);
+    } else {
+      const { x, y, width, height, image } = imageOrConfigOrAtlas;
+      return Texture.manager.createSprite(x, y, width, height, image.id);
+    }
+  }
+
+  public clone() {
+    return this._atlas.createSprite(this._sx, this._sy, this._width, this._height, this.id);
   }
 
   public get width(): number {
@@ -147,8 +176,8 @@ export class TextureManager {
     return this._ctx;
   }
 
-  public get canvas(): HTMLCanvasElement | OffscreenCanvas {
-    return this._canvas;
+  public get canvas(): HTMLCanvasElement {
+    return <HTMLCanvasElement>this._canvas;
   }
 
   // todo should this do texture loading?
@@ -183,9 +212,9 @@ export class TextureManager {
   public createSprite(x: number, y: number, width: number, height: number, id?: number): ManagedSprite {
     const newId = TextureManager._CURRENT_ID++;
     if (!id) {
-      return (this._sprites[newId] = new ManagedSprite(this, newId, x, y, width, height));
+      return (this._sprites[newId] = new ManagedSprite(this, x, y, width, height, newId));
     } else {
-      return (this._sprites[newId] = new ManagedSprite(this, id, x, y, width, height));
+      return (this._sprites[newId] = new ManagedSprite(this, x, y, width, height, id));
     }
   }
 }
