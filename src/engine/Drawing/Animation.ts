@@ -8,6 +8,7 @@ import { Vector } from '../Algebra';
 import { Engine } from '../Engine';
 import * as Util from '../Util/Util';
 import { Configurable } from '../Configurable';
+import { ManagedSprite } from './TextureManager';
 
 /**
  * @hidden
@@ -71,7 +72,7 @@ export class AnimationImpl implements IDrawable {
    * @param speed   The number in milliseconds to display each frame in the animation
    * @param loop    Indicates whether the animation should loop after it is completed
    */
-  constructor(engineOrConfig: Engine | IAnimationArgs, sprites: Sprite[], speed: number, loop?: boolean) {
+  constructor(engineOrConfig: Engine | IAnimationArgs, sprites: ManagedSprite[], speed: number, loop?: boolean) {
     var engine = engineOrConfig;
     if (engineOrConfig && !(engineOrConfig instanceof Engine)) {
       var config = engineOrConfig;
@@ -327,8 +328,8 @@ export interface IAnimationArgs extends Partial<AnimationImpl> {
  */
 export class Animation extends Configurable(AnimationImpl) {
   constructor(config: IAnimationArgs);
-  constructor(engine: Engine, images: Sprite[], speed: number, loop?: boolean);
-  constructor(engineOrConfig: Engine | IAnimationArgs, images?: Sprite[], speed?: number, loop?: boolean) {
+  constructor(engine: Engine, images: ManagedSprite[], speed: number, loop?: boolean);
+  constructor(engineOrConfig: Engine | IAnimationArgs, images?: ManagedSprite[], speed?: number, loop?: boolean) {
     super(engineOrConfig, images, speed, loop);
   }
 }

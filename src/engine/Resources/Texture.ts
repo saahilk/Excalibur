@@ -1,6 +1,7 @@
 import { Resource } from './Resource';
 import { Promise } from '../Promises';
 import { Sprite } from '../Drawing/Sprite';
+import { TextureManager, ManagedSprite } from '../Drawing/Index';
 /**
  * The [[Texture]] object allows games built in Excalibur to load image resources.
  * [[Texture]] is an [[ILoadable]] which means it can be passed to a [[Loader]]
@@ -9,6 +10,12 @@ import { Sprite } from '../Drawing/Sprite';
  * [[include:Textures.md]]
  */
 export class Texture extends Resource<HTMLImageElement> {
+  // Texture manager atlas for all texture data
+  public static manager: TextureManager = new TextureManager();
+
+  // Texture manager sprite id
+  public id: number;
+
   /**
    * The width of the texture in pixels
    */
@@ -25,7 +32,7 @@ export class Texture extends Resource<HTMLImageElement> {
   public loaded: Promise<any> = new Promise<any>();
 
   private _isLoaded: boolean = false;
-  private _sprite: Sprite = null;
+  private _sprite: ManagedSprite = null;
 
   /**
    * Populated once loading is complete
@@ -38,7 +45,7 @@ export class Texture extends Resource<HTMLImageElement> {
    */
   constructor(public path: string, public bustCache = true) {
     super(path, 'blob', bustCache);
-    this._sprite = new Sprite(this, 0, 0, 0, 0);
+    this._sprite = new ManagedSprite(null, null, null, null, null, null);
   }
 
   /**
@@ -57,9 +64,11 @@ export class Texture extends Resource<HTMLImageElement> {
     if (this.path.indexOf('data:image/') > -1) {
       this.image = new Image();
       this.image.addEventListener('load', () => {
-        this.width = this._sprite.width = this.image.naturalWidth;
-        this.height = this._sprite.height = this.image.naturalHeight;
-        this._sprite = new Sprite(this, 0, 0, this.width, this.height);
+        this.width = this.image.naturalWidth;
+        this.height = this.image.naturalHeight;
+        // TODO use ManagedSprite
+        this._sprite = Texture.manager.loadIntoAtlas(this);
+        // this._sprite = new Sprite(this, 0, 0, this.width, this.height);
         this.loaded.resolve(this.image);
         complete.resolve(this.image);
       });
@@ -71,8 +80,9 @@ export class Texture extends Resource<HTMLImageElement> {
           this.image = new Image();
           this.image.addEventListener('load', () => {
             this._isLoaded = true;
-            this.width = this._sprite.width = this.image.naturalWidth;
-            this.height = this._sprite.height = this.image.naturalHeight;
+            // TODO use ManagedSprite
+            this.width = this.image.naturalWidth;
+            this.height = this.image.naturalHeight;
             this.loaded.resolve(this.image);
             complete.resolve(this.image);
           });
@@ -86,7 +96,7 @@ export class Texture extends Resource<HTMLImageElement> {
     return complete;
   }
 
-  public asSprite(): Sprite {
+  public asSprite(): ManagedSprite {
     return this._sprite;
   }
 }

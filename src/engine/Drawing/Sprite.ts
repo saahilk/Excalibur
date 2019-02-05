@@ -26,8 +26,8 @@ export class SpriteImpl implements IDrawable {
   }
 
   public rotation: number = 0.0;
-  public anchor: Vector = new Vector(0.0, 0.0);
-  public scale: Vector = new Vector(1, 1);
+  public anchor: Vector = Vector.Zero;
+  public scale: Vector = Vector.One;
 
   public logger: Logger = Logger.getInstance();
 

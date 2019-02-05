@@ -5,6 +5,7 @@ import { Texture } from './Texture';
 import { Color } from '../Drawing/Color';
 import { SpriteSheet } from '../Drawing/SpriteSheet';
 import { Engine } from '../Engine';
+import { ManagedSprite } from '../Drawing/Index';
 /**
  * The [[Texture]] object allows games built in Excalibur to load image resources.
  * [[Texture]] is an [[ILoadable]] which means it can be passed to a [[Loader]]
@@ -86,13 +87,13 @@ export class Gif extends Resource<Texture[]> {
     return complete;
   }
 
-  public asSprite(id: number = 0): Sprite {
+  public asSprite(id: number = 0): ManagedSprite {
     const sprite = this._texture[id].asSprite();
     return sprite;
   }
 
   public asSpriteSheet(): SpriteSheet {
-    const spriteArray: Sprite[] = this._texture.map((texture) => {
+    const spriteArray: ManagedSprite[] = this._texture.map((texture) => {
       return texture.asSprite();
     });
     return new SpriteSheet(spriteArray);
