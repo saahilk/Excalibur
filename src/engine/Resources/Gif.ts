@@ -4,7 +4,7 @@ import { Texture } from './Texture';
 import { Color } from '../Drawing/Color';
 import { SpriteSheet } from '../Drawing/SpriteSheet';
 import { Engine } from '../Engine';
-import { ManagedSprite } from '../Drawing/Index';
+import { ManagedSprite, TextureManager } from '../Drawing/Index';
 /**
  * The [[Texture]] object allows games built in Excalibur to load image resources.
  * [[Texture]] is an [[ILoadable]] which means it can be passed to a [[Loader]]
@@ -61,7 +61,7 @@ export class Gif extends Resource<Texture[]> {
   /**
    * Begins loading the texture and returns a promise to be resolved on completion
    */
-  public load(): Promise<Texture[]> {
+  public load(manager: TextureManager): Promise<Texture[]> {
     var complete = new Promise<Texture[]>();
     var loaded = super.load();
     loaded.then(
@@ -72,7 +72,7 @@ export class Gif extends Resource<Texture[]> {
         for (let imageIndex: number = 0; imageIndex < this._gif.images.length; imageIndex++) {
           const texture = new Texture(this._gif.images[imageIndex].src, false);
           this._texture.push(texture);
-          promises.push(texture.load());
+          promises.push(texture.load(manager));
         }
         Promise.join(promises).then(() => {
           this._isLoaded = true;

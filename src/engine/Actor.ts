@@ -27,6 +27,7 @@ import { PointerEvent, WheelEvent, PointerDragEvent } from './Input/Pointer';
 import { Engine } from './Engine';
 import { Color } from './Drawing/Color';
 import { Sprite } from './Drawing/Sprite';
+import { ManagedSprite } from './Drawing/TextureManager';
 import { IActorTrait } from './Interfaces/IActorTrait';
 import { IDrawable } from './Interfaces/IDrawable';
 import { ICanInitialize, ICanUpdate, ICanDraw, ICanBeKilled } from './Interfaces/LifecycleEvents';
@@ -46,7 +47,6 @@ import * as Effects from './Drawing/SpriteEffects';
 import * as Util from './Util/Util';
 import * as Events from './Events';
 import { IPointerEvents } from './Interfaces/IPointerEvents';
-import { ManagedSprite } from './Drawing/Index';
 
 export type PointerEventName =
   | 'pointerdragstart'

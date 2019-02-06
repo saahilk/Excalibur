@@ -1,6 +1,6 @@
 import { Resource } from './Resource';
 import { Promise } from '../Promises';
-import { TextureManager, ManagedSprite } from '../Drawing/Index';
+import { ManagedSprite, TextureManager } from '../Drawing/Index';
 /**
  * The [[Texture]] object allows games built in Excalibur to load image resources.
  * [[Texture]] is an [[ILoadable]] which means it can be passed to a [[Loader]]
@@ -9,9 +9,6 @@ import { TextureManager, ManagedSprite } from '../Drawing/Index';
  * [[include:Textures.md]]
  */
 export class Texture extends Resource<HTMLImageElement> {
-  // Texture manager atlas for all texture data
-  public static manager: TextureManager = new TextureManager();
-
   // Texture manager sprite id
   public id: number;
 
@@ -44,7 +41,7 @@ export class Texture extends Resource<HTMLImageElement> {
    */
   constructor(public path: string, public bustCache = true) {
     super(path, 'blob', bustCache);
-    this._sprite = new ManagedSprite(null, null, null, null, null, null);
+    this._sprite = new ManagedSprite(null, null, null, null, null);
   }
 
   /**
@@ -58,7 +55,7 @@ export class Texture extends Resource<HTMLImageElement> {
   /**
    * Begins loading the texture and returns a promise to be resolved on completion
    */
-  public load(): Promise<HTMLImageElement> {
+  public load(manager: TextureManager): Promise<HTMLImageElement> {
     var complete = new Promise<HTMLImageElement>();
     if (this.path.indexOf('data:image/') > -1) {
       this.image = new Image();
@@ -66,7 +63,7 @@ export class Texture extends Resource<HTMLImageElement> {
         this.width = this.image.naturalWidth;
         this.height = this.image.naturalHeight;
         // TODO use ManagedSprite
-        this._sprite = Texture.manager.loadIntoAtlas(this);
+        this._sprite = manager.loadIntoAtlas(this);
         // this._sprite = new Sprite(this, 0, 0, this.width, this.height);
         this.loaded.resolve(this.image);
         complete.resolve(this.image);

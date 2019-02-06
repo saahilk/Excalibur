@@ -10,54 +10,62 @@ export class ManagedSprite implements IDrawable {
   public id: number;
   private _width: number;
   private _height: number;
-  private _sx: number;
-  private _sy: number;
-  private _atlas: TextureManager;
+  private _x: number;
+  private _y: number;
+  public static manager: TextureManager;
 
   constructor(config: ISpriteArgs);
   constructor(image: Texture, x: number, y: number, width: number, height: number);
-  constructor(
-    imageOrConfigOrAtlas: Texture | ISpriteArgs | TextureManager,
-    sx?: number,
-    sy?: number,
-    width?: number,
-    height?: number,
-    id?: number
-  );
+  constructor(id?: number, sx?: number, sy?: number, width?: number, height?: number);
   /**
    *
    * @param atlas
    * @param id
-   * @param sx Source x coordinate in the atlas
-   * @param sy Source y coordinate in the atlas
+   * @param x Source x coordinate in the atlas
+   * @param y Source y coordinate in the atlas
    * @param width
    * @param height
    */
-  constructor(
-    imageOrConfigOrAtlas: Texture | ISpriteArgs | TextureManager,
-    sx?: number,
-    sy?: number,
-    width?: number,
-    height?: number,
-    id?: number
-  ) {
-    if (imageOrConfigOrAtlas instanceof TextureManager) {
-      this.id = id;
+  constructor(imageOrConfigOrId: Texture | ISpriteArgs | number, x?: number, y?: number, width?: number, height?: number) {
+    this._width - width;
+    this._height = height;
+    this._x = x;
+    this._y = y;
+
+    if (typeof imageOrConfigOrId === 'number') {
+      this.id = imageOrConfigOrId;
+    } else if (imageOrConfigOrId instanceof Texture) {
+      this.id = imageOrConfigOrId.id;
+    } else {
+      const { x, y, width, height, image } = imageOrConfigOrId;
+      this.id = image.id;
       this._width = width;
       this._height = height;
-      this._sx = sx;
-      this._sy = sy;
-      this._atlas = imageOrConfigOrAtlas;
-    } else if (imageOrConfigOrAtlas instanceof Texture) {
-      return Texture.manager.createSprite(sx, sy, width, height, imageOrConfigOrAtlas.id);
-    } else {
-      const { x, y, width, height, image } = imageOrConfigOrAtlas;
-      return Texture.manager.createSprite(x, y, width, height, image.id);
+      this._x = x;
+      this._y = y;
     }
+    if (this.id) {
+      this.useReference(this.id);
+    }
+    ManagedSprite.manager.addSprite(this);
+  }
+
+  // Todo i'm not thrilled about methods that side effect
+  public useReference(id: number) {
+    // todo this violets the style guide
+    const reference = ManagedSprite.manager.getSprite(id);
+    const x = reference._x + this._x;
+    const y = reference._y + this._y;
+    const width = clamp(this._width, 1, reference._width);
+    const height = clamp(this._height, 1, reference._height);
+    this._x = x;
+    this._y = y;
+    this._width = width;
+    this._height = height;
   }
 
   public clone() {
-    return this._atlas.createSprite(this._sx, this._sy, this._width, this._height, this.id);
+    return ManagedSprite.manager.addSprite(this);
   }
 
   public get width(): number {
@@ -94,10 +102,10 @@ export class ManagedSprite implements IDrawable {
     }
     ctx.drawImage(
       // Source image
-      <HTMLCanvasElement>this._atlas.canvas,
+      <HTMLCanvasElement>ManagedSprite.manager.canvas,
       // Source coordinates
-      this._sx,
-      this._sy,
+      this._x,
+      this._y,
       this._width,
       this._height,
       // Destination coordinates
@@ -117,16 +125,16 @@ export class ManagedSprite implements IDrawable {
   public scale: Vector = Vector.One;
 
   addEffect(_effect: ISpriteEffect): void {
-    throw new Error('Method not implemented.');
+    //throw new Error('Method not implemented.');
   }
   removeEffect(_effect: ISpriteEffect): void;
   removeEffect(_index: number): void;
   removeEffect(_param: any): void;
   removeEffect(_param: any) {
-    throw new Error('Method not implemented.');
+    //throw new Error('Method not implemented.');
   }
   clearEffects(): void {
-    throw new Error('Method not implemented.');
+    //throw new Error('Method not implemented.');
   }
   reset(): void {
     // pass
@@ -192,11 +200,13 @@ export class TextureManager {
    */
   public loadIntoAtlas(tex: Texture, x: number = 0, y: number = 0, width?: number, height?: number): ManagedSprite {
     this._ctx.drawImage(tex.image, this._currentX, this._currentY, tex.image.naturalWidth, tex.image.naturalHeight);
-    const sprite = this.createSprite(
-      this._currentX + x,
-      this._currentY + y,
-      clamp(width, 1, tex.image.naturalWidth),
-      clamp(height, 1, tex.image.naturalHeight)
+    const sprite = this.addSprite(
+      new ManagedSprite({
+        x: this._currentX + x,
+        y: this._currentY + y,
+        width: clamp(width, 1, tex.image.naturalWidth),
+        height: clamp(height, 1, tex.image.naturalHeight)
+      })
     );
     tex.id = sprite.id;
     this._currentX += tex.image.naturalWidth;
@@ -209,12 +219,14 @@ export class TextureManager {
     return sprite;
   }
 
-  public createSprite(x: number, y: number, width: number, height: number, id?: number): ManagedSprite {
+  public getSprite(id: number) {
+    // TODO this violates style guid
+    return this._sprites[id];
+  }
+
+  public addSprite(sprite: ManagedSprite): ManagedSprite {
     const newId = TextureManager._CURRENT_ID++;
-    if (!id) {
-      return (this._sprites[newId] = new ManagedSprite(this, x, y, width, height, newId));
-    } else {
-      return (this._sprites[newId] = new ManagedSprite(this, x, y, width, height, id));
-    }
+    sprite.id = newId;
+    return (this._sprites[newId] = sprite);
   }
 }

@@ -325,7 +325,7 @@ export class ParticleEmitterImpl extends Actor {
    * Gets or sets the sprite that a particle should use
    * @warning Performance intensive
    */
-  public particleSprite: Sprite = null;
+  public particleSprite: Sprite | ManagedSprite = null;
 
   /**
    * Gets or sets the emitter type for the particle emitter
@@ -496,7 +496,7 @@ export interface IParticleEmitterArgs extends Partial<ParticleEmitterImpl> {
   maxSize?: number;
   beginColor?: Color;
   endColor?: Color;
-  particleSprite?: Sprite;
+  particleSprite?: Sprite | ManagedSprite;
   emitterType?: EmitterType;
   radius?: number;
   particleRotationalVelocity?: number;

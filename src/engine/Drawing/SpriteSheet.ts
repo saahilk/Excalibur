@@ -74,12 +74,12 @@ export class SpriteSheetImpl {
       var j = 0;
       for (i = 0; i < this.rows; i++) {
         for (j = 0; j < this.columns; j++) {
-          this.sprites[j + i * this.columns] = Texture.manager.createSprite(
+          this.sprites[j + i * this.columns] = new ManagedSprite(
+            this.image,
             j * this.spWidth + this.spacing * j + this.spacing,
             i * this.spHeight + this.spacing * i + this.spacing,
             this.spWidth,
-            this.spHeight,
-            this.image.id
+            this.spHeight
           );
         }
       }
@@ -165,8 +165,7 @@ export class SpriteSheetImpl {
       coord.image = coord.image || this.image;
       maxWidth = Math.max(maxWidth, coord.drawWidth);
       maxHeight = Math.max(maxHeight, coord.drawHeight);
-      const id = coord.image.id;
-      sprites[i] = Texture.manager.createSprite(coord.x, coord.y, maxWidth, maxHeight, id); // new Sprite(coord);
+      sprites[i] = new ManagedSprite(coord.image, coord.x, coord.y, maxWidth, maxHeight); // new Sprite(coord);
     }
 
     let anim = new Animation(engine, sprites, speed);

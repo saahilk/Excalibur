@@ -57,7 +57,7 @@ export class Resource<T> extends Class implements ILoadable {
   /**
    * Begin loading the resource and returns a promise to be resolved on completion
    */
-  public load(): Promise<T> {
+  public load(_manager?: any): Promise<T> {
     var complete = new Promise<T>();
 
     // Exit early if we already have data

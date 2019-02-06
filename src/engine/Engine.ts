@@ -30,6 +30,7 @@ import {
 import { ILoader } from './Interfaces/ILoader';
 import { Logger, LogLevel } from './Util/Log';
 import { Color } from './Drawing/Color';
+import { TextureManager, ManagedSprite } from './Drawing/TextureManager';
 import { Scene } from './Scene';
 import { IPostProcessor } from './PostProcessing/IPostProcessor';
 import { Debug, IDebugStats } from './Debug';
@@ -191,6 +192,10 @@ export class Engine extends Class implements ICanInitialize, ICanUpdate, ICanDra
    * Direct access to the canvas element ID, if an ID exists
    */
   public canvasElementId: string;
+  /**
+   * Manager for all loaded bitmaps in excalibur
+   */
+  public textureManager: TextureManager;
 
   /**
    * The width of the game canvas in pixels (physical width component of the
@@ -995,6 +1000,9 @@ O|===|* >________________>\n\
     if (!this.canvasElementId) {
       document.body.appendChild(this.canvas);
     }
+
+    this.textureManager = new TextureManager();
+    ManagedSprite.manager = this.textureManager;
   }
 
   public onInitialize(_engine: Engine) {
