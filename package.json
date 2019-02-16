@@ -27,6 +27,7 @@
     "core": "grunt core",
     "visual": "grunt visual",
     "sandbox": "grunt sandbox",
+    "watch": "webpack --watch --progress",
     "start": "grunt watch",
     "test": "karma start",
     "apidocs": "grunt apidocs",

@@ -266,7 +266,7 @@ module.exports = function(grunt) {
           port: '3001',
           useAvailablePort: true,
           keepalive: true,
-          base: './sandbox'
+          base: './'
         }
       }
     }

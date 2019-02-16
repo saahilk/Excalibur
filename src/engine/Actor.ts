@@ -27,7 +27,7 @@ import { PointerEvent, WheelEvent, PointerDragEvent } from './Input/Pointer';
 import { Engine } from './Engine';
 import { Color } from './Drawing/Color';
 import { Sprite } from './Drawing/Sprite';
-import { ManagedSprite } from './Drawing/TextureManager';
+import { ManagedSprite } from './Drawing/ManagedSprite';
 import { IActorTrait } from './Interfaces/IActorTrait';
 import { IDrawable } from './Interfaces/IDrawable';
 import { ICanInitialize, ICanUpdate, ICanDraw, ICanBeKilled } from './Interfaces/LifecycleEvents';

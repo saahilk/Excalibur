@@ -11,7 +11,7 @@ export interface ILoadable {
   /**
    * Begins loading the resource and returns a promise to be resolved on completion
    */
-  load(): Promise<any>;
+  load(engine?: Engine): Promise<any>;
 
   /**
    * Gets the data that was loaded

@@ -7,7 +7,7 @@ import { Vector } from '../Algebra';
 import { Engine } from '../Engine';
 import * as Util from '../Util/Util';
 import { Configurable } from '../Configurable';
-import { ManagedSprite } from './TextureManager';
+import { ManagedSprite } from './ManagedSprite';
 
 /**
  * @hidden

@@ -8,7 +8,7 @@ import { Engine } from '../Engine';
 import { Logger } from '../Util/Log';
 import { TextAlign, BaseAlign } from '../Label';
 import { Configurable } from '../Configurable';
-import { ManagedSprite } from './Index';
+import { ManagedSprite } from './ManagedSprite';
 
 /**
  * @hidden

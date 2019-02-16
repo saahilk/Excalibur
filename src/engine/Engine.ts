@@ -30,7 +30,8 @@ import {
 import { ILoader } from './Interfaces/ILoader';
 import { Logger, LogLevel } from './Util/Log';
 import { Color } from './Drawing/Color';
-import { TextureManager, ManagedSprite } from './Drawing/TextureManager';
+import { TextureManager } from './Drawing/TextureManager';
+import { ManagedSprite } from './Drawing/ManagedSprite';
 import { Scene } from './Scene';
 import { IPostProcessor } from './PostProcessing/IPostProcessor';
 import { Debug, IDebugStats } from './Debug';

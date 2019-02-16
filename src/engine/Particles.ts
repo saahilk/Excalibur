@@ -8,7 +8,7 @@ import * as DrawUtil from './Util/DrawUtil';
 import * as Traits from './Traits/Index';
 import { Configurable } from './Configurable';
 import { Random } from './Math/Random';
-import { ManagedSprite } from './Drawing/Index';
+import { ManagedSprite } from './Drawing/ManagedSprite';
 
 /**
  * An enum that represents the types of emitter nozzles

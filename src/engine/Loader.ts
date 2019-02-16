@@ -277,11 +277,12 @@ export class Loader extends Class implements ILoader {
       };
     });
 
+    let eng = this._engine;
     function loadNext(list: ILoadable[], index: number) {
       if (!list[index]) {
         return;
       }
-      list[index].load().then(function() {
+      list[index].load(eng).then(function() {
         loadNext(list, index + 1);
       });
     }

@@ -1,6 +1,8 @@
 import { Resource } from './Resource';
 import { Promise } from '../Promises';
-import { ManagedSprite, TextureManager } from '../Drawing/Index';
+import { ManagedSprite } from '../Drawing/ManagedSprite';
+import { Engine } from '../Engine';
+import { TextureManager } from '../Drawing/TextureManager';
 /**
  * The [[Texture]] object allows games built in Excalibur to load image resources.
  * [[Texture]] is an [[ILoadable]] which means it can be passed to a [[Loader]]
@@ -41,7 +43,7 @@ export class Texture extends Resource<HTMLImageElement> {
    */
   constructor(public path: string, public bustCache = true) {
     super(path, 'blob', bustCache);
-    this._sprite = new ManagedSprite(null, null, null, null, null);
+    this._sprite = TextureManager.reserveForTexture(this); // new ManagedSprite(null, null, null, null, null);
   }
 
   /**
@@ -55,7 +57,7 @@ export class Texture extends Resource<HTMLImageElement> {
   /**
    * Begins loading the texture and returns a promise to be resolved on completion
    */
-  public load(manager: TextureManager): Promise<HTMLImageElement> {
+  public load(engine: Engine): Promise<HTMLImageElement> {
     var complete = new Promise<HTMLImageElement>();
     if (this.path.indexOf('data:image/') > -1) {
       this.image = new Image();
@@ -63,8 +65,8 @@ export class Texture extends Resource<HTMLImageElement> {
         this.width = this.image.naturalWidth;
         this.height = this.image.naturalHeight;
         // TODO use ManagedSprite
-        this._sprite = manager.loadIntoAtlas(this);
-        // this._sprite = new Sprite(this, 0, 0, this.width, this.height);
+        this._sprite = engine.textureManager.load(this, this.id);
+
         this.loaded.resolve(this.image);
         complete.resolve(this.image);
       });
@@ -79,6 +81,7 @@ export class Texture extends Resource<HTMLImageElement> {
             // TODO use ManagedSprite
             this.width = this.image.naturalWidth;
             this.height = this.image.naturalHeight;
+            this._sprite = engine.textureManager.load(this, this.id);
             this.loaded.resolve(this.image);
             complete.resolve(this.image);
           });
