@@ -13,6 +13,8 @@ export class TextureManager {
   private _ctx: CanvasRenderingContext2D;
   private _width = 1000;
   private _height = 1000;
+  //   private _maxX = 0;
+  //   private _maxY = 0;
   private _currentX = 0;
   private _currentY = 0;
   // private _currentWidth = 0;
@@ -21,26 +23,25 @@ export class TextureManager {
   constructor(public suppressOffscreen: boolean = false) {
     /**
      * TODO:
-     * [ ] Create backing canvas, maybe with offscreencanavas ctor or fall back to normal canvas
+     * [x] Create backing canvas, maybe with offscreencanavas ctor or fall back to normal canvas
      * [ ] Figure out an efficient packing algorthim
      * [ ] Switch to managed sprite
      *  */
 
-    this._contextProvider();
+    this._contextInitializer(this._width, this._height);
   }
 
-  private _contextProvider(): CanvasRenderingContext2D {
+  private _contextInitializer(width: number, height: number) {
     // TODO do some profiling here
     if ((<any>window).OffscreenCanvas && !this.suppressOffscreen) {
-      this._canvas = new OffscreenCanvas(this._width, this._height);
-      this._ctx = this._canvas.getContext('2d', { alpha: false });
+      this._canvas = new OffscreenCanvas(width, height);
+      this._ctx = this._canvas.getContext('2d', { alpha: true });
     } else {
       // todo canvas needs to be added to the dom to hint memcopy to the gpu
       // todo find source in chromium to back this assertion up
       this._canvas = document.createElement('canvas');
-      this._ctx = this._canvas.getContext('2d', { alpha: false });
+      this._ctx = this._canvas.getContext('2d', { alpha: true });
     }
-    return null;
   }
 
   public get ctx(): CanvasRenderingContext2D {
@@ -62,15 +63,26 @@ export class TextureManager {
    * @param height Hight to take make a sprit from the loaded texture, min is 1, max is the natural height of the loaded texture
    */
   public load(tex: Texture, id?: number, x: number = 0, y: number = 0, width?: number, height?: number): ManagedSprite {
+    // Resize if new image wont fit
+    if (this._needsResize(tex.image.naturalWidth, tex.image.naturalHeight)) {
+      this._resize();
+    }
+
+    // Pack location
+
+    // Add image to atlas
     this._ctx.drawImage(tex.image, this._currentX, this._currentY, tex.image.naturalWidth, tex.image.naturalHeight);
+
+    // Build the atlas coordinate
     const atlasX = this._currentX + x;
     const atlasY = this._currentY + y;
     const atlasWidth = clamp(width || tex.image.naturalWidth, 1, tex.image.naturalWidth);
     const atlasHeight = clamp(height || tex.image.naturalHeight, 1, tex.image.naturalHeight);
 
     // load a reserved sprite
+    let sprite: ManagedSprite = null;
     if (id !== null && TextureManager.getSprite(id)) {
-      const sprite = TextureManager.getSprite(id);
+      sprite = TextureManager.getSprite(id);
       sprite.set({
         x: atlasX,
         y: atlasY,
@@ -80,7 +92,7 @@ export class TextureManager {
 
       // load a new sprite
     } else {
-      const sprite = TextureManager.addSprite(
+      sprite = TextureManager.addSprite(
         new ManagedSprite({
           x: atlasX,
           y: atlasY,
@@ -91,6 +103,12 @@ export class TextureManager {
       );
       tex.id = sprite.id;
     }
+
+    // let nextX = this._currentX + tex.image.naturalWidth;
+    // // let nextY = this._currentY + tex.image.naturalHeight;
+    // if (nextX > this._width) {
+    //     nextX = 0;
+    // }
     this._currentX += tex.image.naturalWidth;
     this._currentY = Math.max(this._currentY, tex.image.naturalHeight);
 
@@ -99,6 +117,31 @@ export class TextureManager {
     // this._currentWidth = this._currentX;
     // this._currentHeight = this._currentY
     return sprite;
+  }
+
+  // https://www.gamedev.net/forums/topic/683912-sprite-packing-algorithm-explained-with-example-code/
+  // https://jsfiddle.net/jLchftot/
+  //   public pack(x: number, y: number, width: number, height: number) {
+  // let nextX = x + width;
+  // let nextY = y + height;
+
+  // Ordering by height is important in this algo
+  // Place the first sprite at (0,0)
+  // Attempt to place it in the min/max boundaries
+  // If not put in the same row, if the new sprite width added will be less than max height
+  // Otherwise shift down, increasing the height
+
+  //   }
+
+  private _needsResize(newWidth: number, newHeight: number) {
+    return this._currentX + newWidth > this._width && this._currentY + newHeight > this._height;
+  }
+
+  private _resize() {
+    // Double the size on each resize
+    this._width *= 2;
+    this._height *= 2;
+    this._contextInitializer(this._width, this._height);
   }
 
   public static reserveForTexture(tex: Texture): ManagedSprite {
