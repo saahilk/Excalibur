@@ -1,5 +1,4 @@
 import { Physics } from './Physics';
-import { Class } from './Class';
 import { BoundingBox } from './Collision/BoundingBox';
 import { Texture } from './Resources/Texture';
 import {
@@ -46,6 +45,7 @@ import * as Effects from './Drawing/SpriteEffects';
 import * as Util from './Util/Util';
 import * as Events from './Events';
 import { IPointerEvents } from './Interfaces/IPointerEvents';
+import { Entity } from './Entity';
 
 export type PointerEventName =
   | 'pointerdragstart'
@@ -84,8 +84,7 @@ export interface IActorDefaults {
 /**
  * @hidden
  */
-
-export class ActorImpl extends Class implements IActionable, IEvented, IPointerEvents, ICanInitialize, ICanUpdate, ICanDraw, ICanBeKilled {
+export class ActorImpl extends Entity implements IActionable, IEvented, IPointerEvents, ICanInitialize, ICanUpdate, ICanDraw, ICanBeKilled {
   // #region Properties
 
   /**
@@ -94,14 +93,6 @@ export class ActorImpl extends Class implements IActionable, IEvented, IPointerE
   public static defaults: IActorDefaults = {
     anchor: Vector.Half
   };
-  /**
-   * Indicates the next id to be set
-   */
-  public static maxId = 0;
-  /**
-   * The unique identifier for the actor
-   */
-  public id: number = ActorImpl.maxId++;
 
   /**
    * The physics body the is associated with this actor. The body is the container for all physical properties, like position, velocity,

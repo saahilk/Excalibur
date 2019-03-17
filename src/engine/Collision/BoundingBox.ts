@@ -4,6 +4,11 @@ import { Actor } from '../Actor';
 import { Vector, Ray } from '../Algebra';
 import { Color } from '../Drawing/Color';
 
+export interface HasDimension {
+  width: number;
+  height: number;
+}
+
 /**
  * Interface all collidable objects must implement
  */
@@ -28,7 +33,7 @@ export interface ICollidable {
 /**
  * Axis Aligned collision primitive for Excalibur.
  */
-export class BoundingBox implements ICollidable {
+export class BoundingBox implements ICollidable, HasDimension {
   /**
    * @param left    x coordinate of the left edge
    * @param top     y coordinate of the top edge
@@ -59,6 +64,10 @@ export class BoundingBox implements ICollidable {
     return new BoundingBox(minX, minY, maxX, maxY);
   }
 
+  public clone(): BoundingBox {
+    return new BoundingBox(this.left, this.top, this.right, this.bottom);
+  }
+
   /**
    * Returns the calculated width of the bounding box
    */
@@ -66,11 +75,19 @@ export class BoundingBox implements ICollidable {
     return this.right - this.left;
   }
 
+  public get width() {
+    return this.getWidth();
+  }
+
   /**
    * Returns the calculated height of the bounding box
    */
   public getHeight() {
     return this.bottom - this.top;
+  }
+
+  public get height() {
+    return this.getHeight();
   }
 
   /**
@@ -333,6 +350,10 @@ export class BoundingBox implements ICollidable {
     }
 
     return null;
+  }
+
+  public interesects(other: BoundingBox): Vector {
+    return this.collides(other);
   }
 
   /* istanbul ignore next */

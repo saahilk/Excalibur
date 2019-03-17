@@ -8,6 +8,7 @@ import { TileMap } from './TileMap';
 import { Side } from './Collision/Side';
 import * as Input from './Input/Index';
 import { Pair, Camera } from './index';
+import { Entity } from './Entity';
 
 export enum EventTypes {
   Kill = 'kill',
@@ -537,8 +538,8 @@ export class DeactivateEvent extends GameEvent<Scene> {
 /**
  * Event thrown on an [[Actor]] when it completely leaves the screen.
  */
-export class ExitViewPortEvent extends GameEvent<Actor> {
-  constructor(public target: Actor) {
+export class ExitViewPortEvent extends GameEvent<Entity> {
+  constructor(public target: Entity) {
     super();
   }
 }
@@ -546,8 +547,8 @@ export class ExitViewPortEvent extends GameEvent<Actor> {
 /**
  * Event thrown on an [[Actor]] when it completely leaves the screen.
  */
-export class EnterViewPortEvent extends GameEvent<Actor> {
-  constructor(public target: Actor) {
+export class EnterViewPortEvent extends GameEvent<Entity> {
+  constructor(public target: Entity) {
     super();
   }
 }
