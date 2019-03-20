@@ -28,6 +28,11 @@ import * as Util from './Util/Util';
 import * as Events from './Events';
 import * as ActorUtils from './Util/Actors';
 import { Trigger } from './Trigger';
+import { EntityRepository } from './EntityRepository';
+import { System } from './Systems/System';
+import { DrawingSystem } from './Systems/Drawing.System';
+import { MotionSystem } from './Systems/Motion.System';
+import { Offscreen as OffscreenSystem } from './Systems/Offscreen.System';
 /**
  * [[Actor|Actors]] are composed together into groupings called Scenes in
  * Excalibur. The metaphor models the same idea behind real world
@@ -38,6 +43,8 @@ import { Trigger } from './Trigger';
  * [[include:Scenes.md]]
  */
 export class Scene extends Class implements ICanInitialize, ICanActivate, ICanDeactivate, ICanUpdate, ICanDraw {
+  public systems: System[] = [];
+  private _entityRepository: EntityRepository = new EntityRepository();
   /**
    * Gets or sets the current camera for the scene
    */
@@ -93,6 +100,8 @@ export class Scene extends Class implements ICanInitialize, ICanActivate, ICanDe
       this.camera.x = _engine.halfDrawWidth;
       this.camera.y = _engine.halfDrawHeight;
     }
+
+    this.systems = [new MotionSystem(), new OffscreenSystem(_engine), new DrawingSystem(_engine)];
   }
 
   public on(eventName: Events.initialize, handler: (event?: InitializeEvent) => void): void;
@@ -317,6 +326,17 @@ export class Scene extends Class implements ICanInitialize, ICanActivate, ICanDe
       this.camera.update(engine, delta);
     }
 
+    // this.actors.filter(hasPreUpdate).forEach(a => a.onPreUpdate(this, delta));
+    this.systems.forEach((s) => s.before(engine, delta));
+    for (let s of this.systems) {
+      // for (let m of this.metaSystems) {
+      this._entityRepository.queryByTypes(s.types).forEach((e) => s.process(e, delta));
+      // this.repository.queryByTypes(m.types).forEach(e => m.process(e, delta));
+      // }
+    }
+    this.systems.forEach((s) => s.after(engine, delta));
+    // this.actors.filter(hasPostUpdate).forEach(a => a.onPostUpdate(this, delta));
+
     var i: number, len: number;
     // Remove timers in the cancel queue before updating them
     for (i = 0, len = this._cancelQueue.length; i < len; i++) {
@@ -530,6 +550,7 @@ export class Scene extends Class implements ICanInitialize, ICanActivate, ICanDe
     if (entity instanceof Actor) {
       if (!Util.contains(this.actors, entity)) {
         this._addChild(entity);
+        this._entityRepository.insert(entity);
       }
       return;
     }
@@ -577,6 +598,7 @@ export class Scene extends Class implements ICanInitialize, ICanActivate, ICanDe
 
     if (entity instanceof Actor) {
       this._removeChild(entity);
+      this._entityRepository.remove(entity.id);
     }
     if (entity instanceof Timer) {
       this.removeTimer(entity);

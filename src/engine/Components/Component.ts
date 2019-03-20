@@ -5,7 +5,8 @@ import { OffscreenComponent } from './OffscreenComponent';
 export enum ComponentTypes {
   Physics = 'physics',
   Drawing = 'drawing',
-  Transform = 'motion',
+  Transform = 'transform',
+  CameraBound = 'camerabound',
   Bounds = 'bounds',
   Offscreen = 'offscreen'
 }

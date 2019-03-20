@@ -5,8 +5,15 @@ export function isTransform(x: Component): x is TransformComponent {
   return !!x && x.type === ComponentTypes.Transform;
 }
 
+export enum CoordPlane {
+  World = 'world',
+  Screen = 'screen'
+}
+
 export class TransformComponent implements Component, HasTransform {
   readonly type = ComponentTypes.Transform;
+
+  public coordPlane = CoordPlane.World;
 
   public pos: Vector = Vector.Zero;
   public oldPos: Vector = Vector.Zero;
