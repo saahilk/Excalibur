@@ -3,7 +3,7 @@ import { ComponentTypes } from '../Components/Component';
 import { Entity } from '../Entity';
 import { Engine } from '../Engine';
 import { isTransform } from '../Components/Transform.Component';
-import { isBounds } from '../Components/BoundsComponent';
+import { isBounds } from '../Components/Bounds.Component';
 import { isDrawing } from '../Components/Drawing.Component';
 import { isOffscreen } from '../Components/OffscreenComponent';
 
@@ -65,7 +65,4 @@ export class DrawingSystem implements System {
       this.ctx.restore();
     }
   }
-
-  before(engine: Engine, delta?: number): void {}
-  after(engine: Engine, delta?: number): void {}
 }

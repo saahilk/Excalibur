@@ -1,5 +1,5 @@
 import { TransformComponent } from './Transform.Component';
-import { PhysicsComponent } from './Physics.Component';
+import { RigidPhysicsComponent } from './Physics.Component';
 import { OffscreenComponent } from './OffscreenComponent';
 
 export enum ComponentTypes {
@@ -18,4 +18,4 @@ export interface Component {
   clone(): Component;
 }
 
-export type BuiltInComponents = TransformComponent | PhysicsComponent | OffscreenComponent;
+export type BuiltInComponents = TransformComponent | RigidPhysicsComponent | OffscreenComponent;

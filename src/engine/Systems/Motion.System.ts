@@ -40,10 +40,4 @@ export class MotionSystem implements System {
       // this._geometryDirty = false;
     }
   }
-  before(engine: Engine, delta?: number): void {
-    // pass
-  }
-  after(engine: Engine, delta?: number): void {
-    // pass
-  }
 }

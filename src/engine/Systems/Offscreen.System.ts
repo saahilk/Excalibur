@@ -4,7 +4,7 @@ import { Engine } from '../Engine';
 import { ComponentTypes } from '../Components/Component';
 import { isTransform } from '../Components/Transform.Component';
 import { isOffscreen } from '../Components/OffscreenComponent';
-import { isBounds } from '../Components/BoundsComponent';
+import { isBounds } from '../Components/Bounds.Component';
 import { ExitViewPortEvent, EnterViewPortEvent } from '../Events';
 
 export class Offscreen implements System {
@@ -42,6 +42,4 @@ export class Offscreen implements System {
       }
     }
   }
-  before(engine: Engine, delta?: number): void {}
-  after(engine: Engine, delta?: number): void {}
 }

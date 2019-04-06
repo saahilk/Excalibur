@@ -8,6 +8,12 @@ import { Entity } from '../Entity';
 export interface System {
   readonly types: Type[];
   process(entity: Entity, delta: number): void;
+}
+
+export interface PreProcess {
   before(engine: Engine, delta?: number): void;
+}
+
+export interface PostProcess {
   after(engine: Engine, delta?: number): void;
 }

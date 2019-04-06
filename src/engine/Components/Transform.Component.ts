@@ -10,6 +10,9 @@ export enum CoordPlane {
   Screen = 'screen'
 }
 
+/**
+ * Has position and motion in the world or screen
+ */
 export class TransformComponent implements Component, HasTransform {
   readonly type = ComponentTypes.Transform;
 
