@@ -220,7 +220,7 @@ export class Loader extends Class implements CanLoad {
    * that resolves when loading of all is complete
    */
   public load(): Promise<any> {
-    var me = this;
+    const me = this;
     if (this._resourceList.length === 0) {
       const complete = new Promise<any>((resolve) => {
         me.showPlayButton().then(() => {

@@ -67,7 +67,7 @@ export class Texture extends Resource<HTMLImageElement> {
       this.image.src = this.path;
     } else {
       complete = new Promise<HTMLImageElement>((resolve, reject) => {
-        var loaded = super.load();
+        const loaded = super.load();
         this.image = new Image();
         loaded.then(
           () => {

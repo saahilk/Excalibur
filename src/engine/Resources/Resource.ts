@@ -59,14 +59,14 @@ export class Resource<T> extends Class implements Loadable {
     // Exit early if we already have data
     if (this.data !== null) {
       this.logger.debug('Already have data for resource', this.path);
-      let complete = new Promise<T>((resolve) => {
+      const complete = new Promise<T>((resolve) => {
         resolve(this.data);
         this.oncomplete();
       });
       return complete;
     }
 
-    var request = new XMLHttpRequest();
+    const request = new XMLHttpRequest();
     request.open('GET', this.bustCache ? this._cacheBust(this.path) : this.path, true);
     request.responseType = this.responseType;
     request.onloadstart = () => {
@@ -74,7 +74,7 @@ export class Resource<T> extends Class implements Loadable {
     };
     request.onprogress = this.onprogress;
     request.onerror = this.onerror;
-    let complete = new Promise<T>((resolve) => {
+    const complete = new Promise<T>((resolve) => {
       request.onload = () => {
         // XHR on file:// success status is 0, such as with PhantomJS
         if (request.status !== 0 && request.status !== 200) {

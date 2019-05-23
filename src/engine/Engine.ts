@@ -1404,7 +1404,7 @@ O|===|* >________________>\n\
    * @param loader  Some [[Loadable]] such as a [[Loader]] collection, [[Sound]], or [[Texture]].
    */
   public load(loader: Loadable): Promise<any> {
-    var complete = new Promise<any>((resolve) => {
+    const complete = new Promise<any>((resolve) => {
       this._isLoading = true;
       loader.load().then(() => {
         if (this._suppressPlayButton) {
