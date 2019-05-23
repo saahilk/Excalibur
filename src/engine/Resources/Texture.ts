@@ -20,6 +20,7 @@ export class Texture extends Resource<HTMLImageElement> {
 
   private _isLoaded: boolean = false;
   private _sprite: Sprite = null;
+  private _textureLoadedPromise: Promise<HTMLImageElement>;
 
   /**
    * Populated once loading is complete
@@ -32,7 +33,6 @@ export class Texture extends Resource<HTMLImageElement> {
    */
   constructor(public path: string, public bustCache = true) {
     super(path, 'blob', bustCache);
-    this._sprite = new Sprite(this, 0, 0, 0, 0);
   }
 
   /**
@@ -47,29 +47,34 @@ export class Texture extends Resource<HTMLImageElement> {
    * Begins loading the texture and returns a promise to be resolved on completion
    */
   public load(): Promise<HTMLImageElement> {
-    return this._loadPromise;
+    if (!this._textureLoadedPromise) {
+      this._textureLoadedPromise = this._loadTexture();
+    }
+    return this._textureLoadedPromise;
   }
 
-  protected _load(): Promise<HTMLImageElement> {
-    const complete = new Promise<HTMLImageElement>((resolve, reject) => {
-      if (this.path.indexOf('data:image/') > -1) {
-        this.image = new Image();
-        this.image.addEventListener('load', () => {
-          this.width = this._sprite.width = this.image.naturalWidth;
-          this.height = this._sprite.height = this.image.naturalHeight;
-          this._sprite = new Sprite(this, 0, 0, this.width, this.height);
+  private _loadTexture(): Promise<HTMLImageElement> {
+    let complete: Promise<HTMLImageElement>;
+    if (this.path.indexOf('data:image/') > -1) {
+      this.image = new Image();
+      this.image.addEventListener('load', () => {
+        this.width = this.image.naturalWidth;
+        this.height = this.image.naturalHeight;
+        complete = new Promise<HTMLImageElement>((resolve) => {
           resolve(this.image);
         });
-        this.image.src = this.path;
-      } else {
-        const loaded = super._load();
+      });
+      this.image.src = this.path;
+    } else {
+      complete = new Promise<HTMLImageElement>((resolve, reject) => {
+        var loaded = super.load();
+        this.image = new Image();
         loaded.then(
           () => {
-            this.image = new Image();
             this.image.addEventListener('load', () => {
               this._isLoaded = true;
-              this.width = this._sprite.width = this.image.naturalWidth;
-              this.height = this._sprite.height = this.image.naturalHeight;
+              this.width = this.image.naturalWidth;
+              this.height = this.image.naturalHeight;
               resolve(this.image);
             });
             this.image.src = super.getData();
@@ -78,13 +83,15 @@ export class Texture extends Resource<HTMLImageElement> {
             reject('Error loading texture.');
           }
         );
-      }
-    });
-
+      });
+    }
     return complete;
   }
 
   public asSprite(): Sprite {
+    if (!this._sprite) {
+      this._sprite = new Sprite(this, 0, 0, this.width, this.height);
+    }
     return this._sprite;
   }
 }

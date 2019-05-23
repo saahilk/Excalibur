@@ -27,6 +27,8 @@ export class Resource<T> extends Class implements Loadable {
     super();
   }
 
+  private _loadResourcePromise: Promise<T>;
+
   /**
    * Returns true if the Resource is completely loaded and is ready
    * to be drawn.
@@ -53,11 +55,53 @@ export class Resource<T> extends Class implements Loadable {
     this.logger.debug('Started loading resource ' + this.path);
   }
 
+  private _loadResource(): Promise<T> {
+    // Exit early if we already have data
+    if (this.data !== null) {
+      this.logger.debug('Already have data for resource', this.path);
+      let complete = new Promise<T>((resolve) => {
+        resolve(this.data);
+        this.oncomplete();
+      });
+      return complete;
+    }
+
+    var request = new XMLHttpRequest();
+    request.open('GET', this.bustCache ? this._cacheBust(this.path) : this.path, true);
+    request.responseType = this.responseType;
+    request.onloadstart = () => {
+      this._start();
+    };
+    request.onprogress = this.onprogress;
+    request.onerror = this.onerror;
+    let complete = new Promise<T>((resolve) => {
+      request.onload = () => {
+        // XHR on file:// success status is 0, such as with PhantomJS
+        if (request.status !== 0 && request.status !== 200) {
+          this.logger.error('Failed to load resource ', this.path, ' server responded with error code', request.status);
+          this.onerror(request.response);
+          resolve(request.response);
+          return;
+        }
+        this.data = this.processData(request.response);
+
+        this.oncomplete();
+        this.logger.debug('Completed loading resource', this.path);
+        resolve(this.data);
+      };
+      request.send();
+    });
+
+    return complete;
+  }
   /**
    * Begin loading the resource and returns a promise to be resolved on completion
    */
   public load(): Promise<T> {
-    return this._loadPromise;
+    if (!this._loadResourcePromise) {
+      this._loadResourcePromise = this._loadResource();
+    }
+    return this._loadResourcePromise;
   }
 
   /**
@@ -102,46 +146,4 @@ export class Resource<T> extends Class implements Loadable {
   public onerror: (e: any) => void = () => {
     return;
   };
-
-  protected _loadPromise: Promise<T> = this._load();
-
-  protected _load(): Promise<T> {
-    // Exit early if we already have data
-    if (this.data !== null) {
-      let complete = new Promise<T>((resolve) => {
-        this.logger.debug('Already have data for resource', this.path);
-        resolve(this.data);
-        this.oncomplete();
-      });
-      return complete;
-    }
-
-    let complete = new Promise<T>((resolve) => {
-      var request = new XMLHttpRequest();
-      request.open('GET', this.bustCache ? this._cacheBust(this.path) : this.path, true);
-      request.responseType = this.responseType;
-      request.onloadstart = () => {
-        this._start();
-      };
-      request.onprogress = this.onprogress;
-      request.onerror = this.onerror;
-      request.onload = () => {
-        // XHR on file:// success status is 0, such as with PhantomJS
-        if (request.status !== 0 && request.status !== 200) {
-          this.logger.error('Failed to load resource ', this.path, ' server responded with error code', request.status);
-          this.onerror(request.response);
-          resolve(request.response);
-          return;
-        }
-        this.data = this.processData(request.response);
-
-        this.oncomplete();
-        this.logger.debug('Completed loading resource', this.path);
-        resolve(this.data);
-      };
-      request.send();
-    });
-
-    return complete;
-  }
 }

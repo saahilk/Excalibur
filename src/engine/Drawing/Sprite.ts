@@ -12,7 +12,7 @@ import { Configurable } from '../Configurable';
  * @hidden
  */
 export class SpriteImpl implements Drawable {
-  private _texture: Texture;
+  public _texture: Texture;
 
   public x: number = 0;
   public y: number = 0;
@@ -81,20 +81,14 @@ export class SpriteImpl implements Drawable {
     this._spriteCanvas.width = width;
     this._spriteCanvas.height = height;
     this._spriteCtx = <CanvasRenderingContext2D>this._spriteCanvas.getContext('2d');
-    this._texture
-      .load()
-      .then(() => {
-        this.width = this.width || this._texture.image.naturalWidth;
-        this.height = this.height || this._texture.image.naturalHeight;
-        this._spriteCanvas.width = this._spriteCanvas.width || this._texture.image.naturalWidth;
-        this._spriteCanvas.height = this._spriteCanvas.height || this._texture.image.naturalHeight;
-        this._loadPixels();
-        this._dirtyEffect = true;
-      })
-      .catch((e) => {
-        this.logger.error('Error loading texture ', this._texture.path, e);
-      });
-
+    if (this._texture.isLoaded) {
+      this.width = this.width || this._texture.image.naturalWidth;
+      this.height = this.height || this._texture.image.naturalHeight;
+      this._spriteCanvas.width = this._spriteCanvas.width || this._texture.image.naturalWidth;
+      this._spriteCanvas.height = this._spriteCanvas.height || this._texture.image.naturalHeight;
+      this._loadPixels();
+      this._dirtyEffect = true;
+    }
     this.width = width;
     this.height = height;
   }
