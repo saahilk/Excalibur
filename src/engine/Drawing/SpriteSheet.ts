@@ -61,7 +61,7 @@ export class SpriteSheetImpl {
     if (this.image instanceof Texture) {
       let isWidthError: boolean = false;
       let isHeightError: boolean = false;
-      if (this.image.isLoaded) {
+      if (this.image.isLoaded()) {
         isWidthError = this.spWidth * this.columns > this.image.image.naturalWidth;
         isHeightError = this.spHeight * this.rows > this.image.image.naturalHeight;
 
@@ -82,17 +82,17 @@ export class SpriteSheetImpl {
       }
     }
 
-      for (let i = 0; i < this.rows; i++) {
-        for (let j = 0; j < this.columns; j++) {
-          this.sprites[j + i * this.columns] = new Sprite(
-            this.image,
-            j * this.spWidth + this.spacing * j + this.spacing,
-            i * this.spHeight + this.spacing * i + this.spacing,
-            this.spWidth,
-            this.spHeight
-          );
-        }
+    for (let i = 0; i < this.rows; i++) {
+      for (let j = 0; j < this.columns; j++) {
+        this.sprites[j + i * this.columns] = new Sprite(
+          this.image,
+          j * this.spWidth + this.spacing * j + this.spacing,
+          i * this.spHeight + this.spacing * i + this.spacing,
+          this.spWidth,
+          this.spHeight
+        );
       }
+    }
   }
 
   /**

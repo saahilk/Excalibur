@@ -315,7 +315,7 @@ export class ActionContext {
    * Returns a promise that resolves when the current action queue up to now
    * is finished.
    */
-  public asPromise<T>(): Promise<T> {
+  public asPromise<T>(): Promise<T[]> {
     const promises = this._queues.map((q, i) => {
       const temp = new Promise<T>((resolve) => {
         q.add(
@@ -326,6 +326,6 @@ export class ActionContext {
       });
       return temp;
     });
-    return Promise.all.apply(this, promises);
+    return Promise.all(promises);
   }
 }

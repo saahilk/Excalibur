@@ -33,6 +33,7 @@ export class Texture extends Resource<HTMLImageElement> {
    */
   constructor(public path: string, public bustCache = true) {
     super(path, 'blob', bustCache);
+    this._sprite = new Sprite(this, 0, 0, this.width, this.height);
   }
 
   /**
@@ -59,8 +60,8 @@ export class Texture extends Resource<HTMLImageElement> {
         this.image = new Image();
         this.image.addEventListener('load', () => {
           this._isLoaded = true;
-          this.width = this.image.naturalWidth;
-          this.height = this.image.naturalHeight;
+          this.width = this._sprite.width = this.image.naturalWidth;
+          this.height = this._sprite.height = this.image.naturalHeight;
           resolve(this.image);
         });
         this.image.src = this.path;
@@ -74,8 +75,8 @@ export class Texture extends Resource<HTMLImageElement> {
           () => {
             this.image.addEventListener('load', () => {
               this._isLoaded = true;
-              this.width = this.image.naturalWidth;
-              this.height = this.image.naturalHeight;
+              this.width = this._sprite.width = this.image.naturalWidth;
+              this.height = this._sprite.height = this.image.naturalHeight;
               resolve(this.image);
             });
             this.image.src = super.getData();
@@ -90,9 +91,6 @@ export class Texture extends Resource<HTMLImageElement> {
   }
 
   public asSprite(): Sprite {
-    if (!this._sprite) {
-      this._sprite = new Sprite(this, 0, 0, this.width, this.height);
-    }
     return this._sprite;
   }
 }

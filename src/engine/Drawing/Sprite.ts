@@ -81,16 +81,24 @@ export class SpriteImpl implements Drawable {
     this._spriteCanvas.width = width;
     this._spriteCanvas.height = height;
     this._spriteCtx = <CanvasRenderingContext2D>this._spriteCanvas.getContext('2d');
-    if (this._texture.isLoaded) {
-      this.width = this.width || this._texture.image.naturalWidth;
-      this.height = this.height || this._texture.image.naturalHeight;
-      this._spriteCanvas.width = this._spriteCanvas.width || this._texture.image.naturalWidth;
-      this._spriteCanvas.height = this._spriteCanvas.height || this._texture.image.naturalHeight;
-      this._loadPixels();
-      this._dirtyEffect = true;
+    if (this._texture.isLoaded()) {
+      this._setFromTexture(this._texture);
+    } else {
+      this._texture.load().then(() => {
+        this._setFromTexture(this._texture);
+      });
     }
     this.width = width;
     this.height = height;
+  }
+
+  private _setFromTexture(texture: Texture) {
+    this.width = this.width || texture.image.naturalWidth;
+    this.height = this.height || texture.image.naturalHeight;
+    this._spriteCanvas.width = this._spriteCanvas.width || texture.image.naturalWidth;
+    this._spriteCanvas.height = this._spriteCanvas.height || texture.image.naturalHeight;
+    this._loadPixels();
+    this._dirtyEffect = true;
   }
 
   private _loadPixels() {
