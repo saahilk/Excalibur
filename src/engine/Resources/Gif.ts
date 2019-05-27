@@ -29,6 +29,7 @@ export class Gif extends Resource<Texture[]> {
   private _texture: Texture[] = [];
   private _animation: Animation = null;
   private _transparentColor: Color = null;
+  private _loadGifPromise: Promise<Texture[]>;
 
   /**
    * Populated once loading is complete
@@ -57,6 +58,13 @@ export class Gif extends Resource<Texture[]> {
    * Begins loading the texture and returns a promise to be resolved on completion
    */
   public load(): Promise<Texture[]> {
+    if (!this._loadGifPromise) {
+      this._loadGifPromise = this._loadGif();
+    }
+    return this._loadGifPromise;
+  }
+
+  private _loadGif(): Promise<Texture[]> {
     const complete = new Promise<Texture[]>((resolve, reject) => {
       const loaded = super.load();
       loaded.then(

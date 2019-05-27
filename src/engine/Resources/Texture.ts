@@ -54,19 +54,20 @@ export class Texture extends Resource<HTMLImageElement> {
   }
 
   private _loadTexture(): Promise<HTMLImageElement> {
-    let complete: Promise<HTMLImageElement>;
     if (this.path.indexOf('data:image/') > -1) {
-      this.image = new Image();
-      this.image.addEventListener('load', () => {
-        this.width = this.image.naturalWidth;
-        this.height = this.image.naturalHeight;
-        complete = new Promise<HTMLImageElement>((resolve) => {
+      const complete = new Promise<HTMLImageElement>((resolve) => {
+        this.image = new Image();
+        this.image.addEventListener('load', () => {
+          this._isLoaded = true;
+          this.width = this.image.naturalWidth;
+          this.height = this.image.naturalHeight;
           resolve(this.image);
         });
+        this.image.src = this.path;
       });
-      this.image.src = this.path;
+      return complete;
     } else {
-      complete = new Promise<HTMLImageElement>((resolve, reject) => {
+      const complete = new Promise<HTMLImageElement>((resolve, reject) => {
         const loaded = super.load();
         this.image = new Image();
         loaded.then(
@@ -84,8 +85,8 @@ export class Texture extends Resource<HTMLImageElement> {
           }
         );
       });
+      return complete;
     }
-    return complete;
   }
 
   public asSprite(): Sprite {
