@@ -2,7 +2,6 @@ import * as Actions from './Action';
 import { RotationType } from './RotationType';
 
 import { Actor } from '../Actor';
-import { Promise } from '../Promises';
 import { EasingFunction, EasingFunctions } from '../Util/EasingFunctions';
 
 /**
@@ -318,14 +317,15 @@ export class ActionContext {
    */
   public asPromise<T>(): Promise<T> {
     const promises = this._queues.map((q, i) => {
-      const temp = new Promise<T>();
-      q.add(
-        new Actions.CallMethod(this._actors[i], () => {
-          temp.resolve();
-        })
-      );
+      const temp = new Promise<T>((resolve) => {
+        q.add(
+          new Actions.CallMethod(this._actors[i], () => {
+            resolve();
+          })
+        );
+      });
       return temp;
     });
-    return Promise.join.apply(this, promises);
+    return Promise.all.apply(this, promises);
   }
 }
