@@ -33,7 +33,7 @@ export class Texture extends Resource<HTMLImageElement> {
    */
   constructor(public path: string, public bustCache = true) {
     super(path, 'blob', bustCache);
-    this._sprite = new Sprite(this, 0, 0, this.width, this.height);
+    this._sprite = new Sprite(this, 0, 0, 0, 0);
   }
 
   /**
@@ -54,16 +54,20 @@ export class Texture extends Resource<HTMLImageElement> {
     return this._textureLoadedPromise;
   }
 
+  private _onResourceLoaded(resolve: (value?: HTMLImageElement | PromiseLike<HTMLImageElement>) => void) {
+    this.image.addEventListener('load', () => {
+      this._isLoaded = true;
+      this.width = this._sprite.width = this.image.naturalWidth;
+      this.height = this._sprite.height = this.image.naturalHeight;
+      resolve(this.image);
+    });
+  }
+
   private _loadTexture(): Promise<HTMLImageElement> {
     if (this.path.indexOf('data:image/') > -1) {
       const complete = new Promise<HTMLImageElement>((resolve) => {
         this.image = new Image();
-        this.image.addEventListener('load', () => {
-          this._isLoaded = true;
-          this.width = this._sprite.width = this.image.naturalWidth;
-          this.height = this._sprite.height = this.image.naturalHeight;
-          resolve(this.image);
-        });
+        this._onResourceLoaded(resolve);
         this.image.src = this.path;
       });
       return complete;
@@ -73,12 +77,7 @@ export class Texture extends Resource<HTMLImageElement> {
         this.image = new Image();
         loaded.then(
           () => {
-            this.image.addEventListener('load', () => {
-              this._isLoaded = true;
-              this.width = this._sprite.width = this.image.naturalWidth;
-              this.height = this._sprite.height = this.image.naturalHeight;
-              resolve(this.image);
-            });
+            this._onResourceLoaded(resolve);
             this.image.src = super.getData();
           },
           () => {
