@@ -1,6 +1,5 @@
 import { Engine } from './Engine';
 import { EasingFunction, EasingFunctions } from './Util/EasingFunctions';
-import { PromiseLike, Promise, PromiseState } from './Promises';
 import { Vector } from './Algebra';
 import { Actor } from './Actor';
 import { removeItemFromArray } from './Util/Util';
@@ -207,7 +206,7 @@ export class Camera extends Class implements CanUpdate, CanInitialize {
   private _lerpDuration: number = 1000; // 1 second
   private _lerpStart: Vector = null;
   private _lerpEnd: Vector = null;
-  private _lerpPromise: PromiseLike<Vector>;
+  private _lerpResolver: (value?: Vector | PromiseLike<Vector>) => void;
 
   //camera effects
   protected _isShaking: boolean = false;
@@ -224,7 +223,7 @@ export class Camera extends Class implements CanUpdate, CanInitialize {
   private _currentZoomTime: number = 0;
   private _zoomDuration: number = 0;
 
-  private _zoomPromise: Promise<boolean>;
+  private _zoomResolver: (value?: boolean | PromiseLike<boolean>) => void;
   private _zoomEasing: EasingFunction = EasingFunctions.EaseInOutCubic;
   private _easing: EasingFunction = EasingFunctions.EaseInOutCubic;
 
@@ -313,15 +312,14 @@ export class Camera extends Class implements CanUpdate, CanInitialize {
 
     // cannot move when following an actor
     if (this._follow) {
-      return new Promise<Vector>().reject(pos);
+      return Promise.reject(pos);
     }
 
     // resolve existing promise, if any
-    if (this._lerpPromise && this._lerpPromise.state() === PromiseState.Pending) {
-      this._lerpPromise.resolve(pos);
+    if (this._lerpResolver) {
+      this._lerpResolver(pos);
     }
 
-    this._lerpPromise = new Promise<Vector>();
     this._lerpStart = this.getFocus().clone();
     this._lerpDuration = duration;
     this._lerpEnd = pos;
@@ -329,7 +327,11 @@ export class Camera extends Class implements CanUpdate, CanInitialize {
     this._cameraMoving = true;
     this._easing = easingFn;
 
-    return this._lerpPromise;
+    const lerpPromise = new Promise<Vector>((resolve) => {
+      this._lerpResolver = resolve;
+    });
+
+    return lerpPromise;
   }
 
   /**
@@ -352,8 +354,6 @@ export class Camera extends Class implements CanUpdate, CanInitialize {
    * @param duration The duration of the zoom in milliseconds
    */
   public zoom(scale: number, duration: number = 0, easingFn: EasingFunction = EasingFunctions.EaseInOutCubic): Promise<boolean> {
-    this._zoomPromise = new Promise<boolean>();
-
     if (duration) {
       this._isZooming = true;
       this._zoomEasing = easingFn;
@@ -361,13 +361,19 @@ export class Camera extends Class implements CanUpdate, CanInitialize {
       this._zoomDuration = duration;
       this._zoomStart = this.z;
       this._zoomEnd = scale;
+      const zoomPromise = new Promise<boolean>((resolve) => {
+        this._zoomResolver = resolve;
+      });
+      return zoomPromise;
     } else {
+      this._zoomResolver = undefined;
       this._isZooming = false;
       this.z = scale;
-      this._zoomPromise.resolve(true);
+      const zoomPromise = new Promise<boolean>((resolve) => {
+        resolve(true);
+      });
+      return zoomPromise;
     }
-
-    return this._zoomPromise;
   }
 
   /**
@@ -526,7 +532,8 @@ export class Camera extends Class implements CanUpdate, CanInitialize {
         this._isZooming = false;
         this.z = this._zoomEnd;
         this._currentZoomTime = 0;
-        this._zoomPromise.resolve(true);
+        this._zoomResolver(true);
+        this._zoomResolver = undefined;
       }
     }
 
@@ -550,7 +557,8 @@ export class Camera extends Class implements CanUpdate, CanInitialize {
         this._currentLerpTime = 0;
         this._cameraMoving = false;
         // Order matters here, resolve should be last so any chain promises have a clean slate
-        this._lerpPromise.resolve(end);
+        this._lerpResolver(end);
+        this._lerpResolver = undefined;
       }
     }
 

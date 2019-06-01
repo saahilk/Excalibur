@@ -81,6 +81,13 @@ describe('A camera', () => {
   });
 
   it('can chain moves from various points', () => {
+    function updateGame() {
+      //wait 11 frames (1100ms)
+      for (let i = 0; i < 11; i++) {
+        Camera.update(engine, 100);
+      }
+    }
+
     Camera.x = 10;
     Camera.y = 20;
 
@@ -89,37 +96,23 @@ describe('A camera', () => {
     expect(Camera.y).toBe(20);
 
     Camera.move(new ex.Vector(20, 10), 1000).then(() => {
+      // should be at new position
+      expect(Camera.x).toBe(20);
+      expect(Camera.y).toBe(10);
       Camera.move(new ex.Vector(0, 0), 1000).then(() => {
-        Camera.move(new ex.Vector(100, 100), 1000);
+        // should be at new position
+        expect(Camera.x).toBe(0);
+        expect(Camera.y).toBe(0);
+        Camera.move(new ex.Vector(100, 100), 1000).then(() => {
+          //should be at new position
+          expect(Camera.x).toBe(100);
+          expect(Camera.y).toBe(100);
+        });
+        updateGame();
       });
+      updateGame();
     });
-
-    // wait 11 frames (1100ms)
-    for (let i = 0; i < 11; i++) {
-      Camera.update(engine, 100);
-    }
-
-    // should be at new position
-    expect(Camera.x).toBe(20);
-    expect(Camera.y).toBe(10);
-
-    // wait 11 frames (1100ms)
-    for (let i = 0; i < 11; i++) {
-      Camera.update(engine, 100);
-    }
-
-    // should be at new position
-    expect(Camera.x).toBe(0);
-    expect(Camera.y).toBe(0);
-
-    // wait 11 frames (1100ms)
-    for (let i = 0; i < 11; i++) {
-      Camera.update(engine, 100);
-    }
-
-    // should be at new position
-    expect(Camera.x).toBe(100);
-    expect(Camera.y).toBe(100);
+    updateGame();
   });
 
   it('can shake', () => {
@@ -233,13 +226,13 @@ describe('A camera', () => {
         expect(engine.currentScene.camera.pos.y).toBe(200);
         done();
       });
+      engine.currentScene.camera.update(engine, 1);
+      engine.currentScene.camera.update(engine, 999);
+      engine.currentScene.camera.update(engine, 1);
     });
 
-    engine.currentScene.camera.update(engine, 999);
-    engine.currentScene.camera.update(engine, 1);
     engine.currentScene.camera.update(engine, 1);
     engine.currentScene.camera.update(engine, 999);
-    engine.currentScene.camera.update(engine, 1);
     engine.currentScene.camera.update(engine, 1);
   });
 
