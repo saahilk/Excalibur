@@ -1,10 +1,10 @@
 import { Vector } from '../Algebra';
-import { SpriteEffect } from '../Drawing/SpriteEffects';
+import { HasEffects } from './HasEffects';
 
 /**
  * Interface for implementing anything in Excalibur that can be drawn to the screen.
  */
-export interface Drawable {
+export interface Drawable extends HasEffects {
   /**
    * Indicates whether the drawing is to be flipped vertically
    */
@@ -32,34 +32,15 @@ export interface Drawable {
   height: number;
 
   /**
-   * Adds a new [[SpriteEffect]] to this drawing.
-   * @param effect  Effect to add to the this drawing
-   */
-  addEffect(effect: SpriteEffect): void;
-
-  /**
-   * Removes an effect [[SpriteEffect]] from this drawing.
-   * @param effect  Effect to remove from this drawing
-   */
-  removeEffect(effect: SpriteEffect): void;
-
-  /**
-   * Removes an effect by index from this drawing.
-   * @param index  Index of the effect to remove from this drawing
-   */
-  removeEffect(index: number): void;
-  removeEffect(param: any): void;
-
-  /**
-   * Clears all effects from the drawing and return it to its original state.
-   */
-  clearEffects(): void;
-
-  /**
    * Gets or sets the point about which to apply transformations to the drawing relative to the
    * top left corner of the drawing.
    */
   anchor: Vector;
+
+  /**
+   * Gets or sets the pixel offset to apply to the drawing
+   */
+  offset: Vector;
 
   /**
    * Gets or sets the scale transformation
@@ -72,7 +53,17 @@ export interface Drawable {
   rotation: number;
 
   /**
-   * Resets the internal state of the drawing (if any)
+   * Gets the load status of the drawable
+   */
+  loaded: boolean;
+
+  /**
+   * Tick the internal state of the drawable (if any)
+   */
+  tick(delta: number): void;
+
+  /**
+   * Resets the internal state of the drawable (if any)
    */
   reset(): void;
 

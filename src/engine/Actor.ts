@@ -1,4 +1,3 @@
-import { Class } from './Class';
 import { BoundingBox } from './Collision/BoundingBox';
 import { Texture } from './Resources/Texture';
 import {
@@ -27,7 +26,7 @@ import { Engine } from './Engine';
 import { Color } from './Drawing/Color';
 import { Sprite } from './Drawing/Sprite';
 import { Trait } from './Interfaces/Trait';
-import { Drawable } from './Interfaces/Drawable';
+import { Drawable } from './Drawing/Drawable';
 import { CanInitialize, CanUpdate, CanDraw, CanBeKilled } from './Interfaces/LifecycleEvents';
 import { Scene } from './Scene';
 import { Logger } from './Util/Log';
@@ -49,6 +48,10 @@ import { CollisionType } from './Collision/CollisionType';
 import { obsolete } from './Util/Decorators';
 import { Collider } from './Collision/Collider';
 import { Shape } from './Collision/Shape';
+import { Entity } from './EntityComponentSystem/Entity';
+import { TransformComponent } from './EntityComponentSystem/TransformComponent';
+import { DrawingComponent } from './EntityComponentSystem/DrawingComponent';
+import { ComponentTypes } from './EntityComponentSystem/Types';
 
 export function isActor(x: any): x is Actor {
   return x instanceof Actor;
@@ -79,7 +82,7 @@ export interface ActorDefaults {
  * @hidden
  */
 
-export class ActorImpl extends Class implements Actionable, Eventable, PointerEvents, CanInitialize, CanUpdate, CanDraw, CanBeKilled {
+export class ActorImpl extends Entity implements Actionable, Eventable, PointerEvents, CanInitialize, CanUpdate, CanDraw, CanBeKilled {
   // #region Properties
 
   /**
@@ -88,14 +91,6 @@ export class ActorImpl extends Class implements Actionable, Eventable, PointerEv
   public static defaults: ActorDefaults = {
     anchor: Vector.Half
   };
-  /**
-   * Indicates the next id to be set
-   */
-  public static maxId = 0;
-  /**
-   * The unique identifier for the actor
-   */
-  public id: number = ActorImpl.maxId++;
 
   /**
    * The physics body the is associated with this actor. The body is the container for all physical properties, like position, velocity,
@@ -107,7 +102,7 @@ export class ActorImpl extends Class implements Actionable, Eventable, PointerEv
 
   public set body(body: Body) {
     this._body = body;
-    this._body.actor = this;
+    this._body.entity = this;
   }
 
   private _body: Body;
@@ -518,7 +513,8 @@ export class ActorImpl extends Class implements Actionable, Eventable, PointerEv
   private _collisionHandlers: { [key: string]: { (actor: Actor): void }[] } = {};
   private _isInitialized: boolean = false;
   public frames: { [key: string]: Drawable } = {};
-  private _effectsDirty: boolean = false;
+
+  //private _effectsDirty: boolean = false;
 
   /**
    * Access to the current drawing for the actor, this can be
@@ -580,6 +576,10 @@ export class ActorImpl extends Class implements Actionable, Eventable, PointerEv
     // initialize default options
     this._initDefaults();
 
+    // Build default components
+    this.addComponent(new TransformComponent());
+    this.addComponent(new DrawingComponent());
+
     let shouldInitializeBody = true;
     if (xOrConfig && typeof xOrConfig === 'object') {
       const config = xOrConfig;
@@ -591,6 +591,7 @@ export class ActorImpl extends Class implements Actionable, Eventable, PointerEv
       if (config.body) {
         shouldInitializeBody = false;
         this.body = config.body;
+        this.body.transform = this.components[ComponentTypes.Transform] as TransformComponent;
       }
 
       if (config.anchor) {
@@ -605,6 +606,7 @@ export class ActorImpl extends Class implements Actionable, Eventable, PointerEv
     // Initialize default collider to be a box
     if (shouldInitializeBody) {
       this.body = new Body({
+        transform: this.components[ComponentTypes.Transform] as TransformComponent,
         collider: new Collider({
           type: CollisionType.Passive,
           shape: Shape.Box(this._width, this._height, this.anchor)
@@ -1011,6 +1013,15 @@ export class ActorImpl extends Class implements Actionable, Eventable, PointerEv
       actor.parent = null;
     }
   }
+
+  public get drawing(): DrawingComponent {
+    const drawing = this.components[ComponentTypes.Drawing] as DrawingComponent;
+    if (drawing) {
+      return drawing;
+    }
+    return null;
+  }
+
   /**
    * Sets the current drawing of the actor to the drawing corresponding to
    * the key.
@@ -1024,6 +1035,12 @@ export class ActorImpl extends Class implements Actionable, Eventable, PointerEv
    */
   public setDrawing(key: number): void;
   public setDrawing(key: any): void {
+    const drawing = this.components[ComponentTypes.Drawing] as DrawingComponent;
+    if (drawing) {
+      drawing.show(key);
+    }
+
+    /**
     key = key.toString();
     if (this.currentDrawing !== this.frames[<string>key]) {
       if (this.frames[key] != null) {
@@ -1032,7 +1049,7 @@ export class ActorImpl extends Class implements Actionable, Eventable, PointerEv
       } else {
         Logger.getInstance().error(`the specified drawing key ${key} does not exist`);
       }
-    }
+    } */
   }
 
   /**
@@ -1050,18 +1067,26 @@ export class ActorImpl extends Class implements Actionable, Eventable, PointerEv
    */
   public addDrawing(key: any, drawing: Drawable): void;
   public addDrawing(): void {
-    if (arguments.length === 2) {
-      this.frames[<string>arguments[0]] = arguments[1];
-      if (!this.currentDrawing) {
-        this.currentDrawing = arguments[1];
-      }
-      this._effectsDirty = true;
-    } else {
-      if (arguments[0] instanceof Sprite) {
-        this.addDrawing('default', arguments[0]);
-      }
-      if (arguments[0] instanceof Texture) {
-        this.addDrawing('default', arguments[0].asSprite());
+    const drawing = this.components[ComponentTypes.Drawing] as DrawingComponent;
+    if (drawing) {
+      if (arguments.length === 2) {
+        drawing.add(<string>arguments[0], arguments[1]);
+        // this.frames[<string>arguments[0]] = arguments[1];
+        // if (!this.currentDrawing) {
+        //   this.currentDrawing = arguments[1];
+        // }
+        // this._effectsDirty = true;
+      } else {
+        if (arguments[0] instanceof Sprite) {
+          drawing.add('default', arguments[0]);
+          drawing.show('default');
+          // this.addDrawing('default', arguments[0]);
+        }
+        if (arguments[0] instanceof Texture) {
+          drawing.add('default', arguments[0].asSprite());
+          drawing.show('default');
+          // this.addDrawing('default', arguments[0].asSprite());
+        }
       }
     }
   }
@@ -1484,7 +1509,7 @@ export class ActorImpl extends Class implements Actionable, Eventable, PointerEv
     if (this.previousOpacity !== this.opacity) {
       this.previousOpacity = this.opacity;
       this._opacityFx.opacity = this.opacity;
-      this._effectsDirty = true;
+      // this._effectsDirty = true;
     }
 
     // capture old transform
@@ -1554,8 +1579,8 @@ export class ActorImpl extends Class implements Actionable, Eventable, PointerEv
    * @param ctx   The rendering context
    * @param delta The time since the last draw in milliseconds
    */
-  public draw(ctx: CanvasRenderingContext2D, delta: number) {
-    ctx.save();
+  public draw(_ctx: CanvasRenderingContext2D, _delta: number) {
+    /*ctx.save();
     ctx.translate(this.pos.x, this.pos.y);
     ctx.rotate(this.rotation);
     ctx.scale(this.scale.x, this.scale.y);
@@ -1593,7 +1618,7 @@ export class ActorImpl extends Class implements Actionable, Eventable, PointerEv
     }
 
     this._postdraw(ctx, delta);
-    ctx.restore();
+    ctx.restore();*/
   }
 
   /**

@@ -1,5 +1,5 @@
 import { Vector } from '../Algebra';
-import { Actor } from '../Actor';
+import { Actor, isActor } from '../Actor';
 import { Collider } from './Collider';
 import { CollisionType } from './CollisionType';
 import { Physics } from '../Physics';
@@ -7,16 +7,26 @@ import { obsolete } from '../Util/Decorators';
 import { PreCollisionEvent, PostCollisionEvent, CollisionStartEvent, CollisionEndEvent } from '../Events';
 import { Clonable } from '../Interfaces/Clonable';
 import { Shape } from './Shape';
+import { Entity } from '../EntityComponentSystem/Entity';
+import { TransformComponent } from '../EntityComponentSystem/TransformComponent';
 
 export interface BodyOptions {
   /**
-   * Optionally the actory associated with this body
+   * Optionally the Entity associated with this body
+   */
+  entity?: Entity;
+  /**
+   * Optionally an actor to associate with this body
    */
   actor?: Actor;
   /**
    * An optional collider to use in this body, if none is specified a default Box collider will be created.
    */
   collider?: Collider;
+  /**
+   * An optional transform to use in this body
+   */
+  transform?: TransformComponent;
 }
 
 /**
@@ -24,25 +34,45 @@ export interface BodyOptions {
  */
 export class Body implements Clonable<Body> {
   private _collider: Collider;
-  public actor: Actor;
+  public entity: Entity;
+  @obsolete({ message: 'Body.actor will be removed in v0.25.0', alternateMethod: 'Use Body.entity instead' })
+  public get actor(): Actor {
+    if (isActor(this.entity)) {
+      return this.entity;
+    }
+    return null;
+  }
+
+  public set actor(actor: Actor) {
+    this.entity = actor;
+  }
+
+  public transform: TransformComponent;
   /**
    * Constructs a new physics body associated with an actor
    */
-  constructor({ actor, collider }: BodyOptions) {
-    if (!actor && !collider) {
-      throw new Error('An actor or collider are required to create a body');
+  constructor({ entity, actor, collider, transform }: BodyOptions) {
+    if (!entity && !collider) {
+      throw new Error('An entity or collider are required to create a body');
+    }
+    // Body requires a transform
+    this.entity = entity || actor;
+    if (transform) {
+      this.transform = transform;
+    } else {
+      this.transform = new TransformComponent();
+      this.entity.addComponent(this.transform);
     }
 
-    this.actor = actor;
-    if (!collider && actor) {
-      this.collider = this.useBoxCollider(actor.width, actor.height, actor.anchor);
+    if (!collider && isActor(entity)) {
+      this.collider = this.useBoxCollider(entity.width, entity.height, entity.anchor);
     } else {
       this.collider = collider;
     }
   }
 
   public get id() {
-    return this.actor ? this.actor.id : -1;
+    return this.entity ? this.entity.id : -1;
   }
 
   /**
@@ -50,13 +80,16 @@ export class Body implements Clonable<Body> {
    */
   public clone() {
     return new Body({
-      actor: null,
+      entity: null,
       collider: this.collider.clone()
     });
   }
 
   public get active() {
-    return this.actor ? !this.actor.isKilled() : false;
+    if (isActor(this.entity)) {
+      return this.entity ? !this.entity.isKilled() : false;
+    }
+    return true;
   }
 
   public get center() {
@@ -81,7 +114,13 @@ export class Body implements Clonable<Body> {
    * [[Actor.anchor]] is set to (0.5, 0.5) which is default.
    * If you want the (x, y) position to be the top left of the actor specify an anchor of (0, 0).
    */
-  public pos: Vector = new Vector(0, 0);
+  public get pos(): Vector {
+    return this.transform.pos;
+  }
+
+  public set pos(pos: Vector) {
+    this.transform.pos = pos;
+  }
 
   /**
    * The position of the actor last frame (x, y) in pixels
@@ -91,7 +130,13 @@ export class Body implements Clonable<Body> {
   /**
    * The current velocity vector (vx, vy) of the actor in pixels/second
    */
-  public vel: Vector = new Vector(0, 0);
+  public get vel(): Vector {
+    return this.transform.vel;
+  }
+
+  public set vel(vel: Vector) {
+    this.transform.vel = vel;
+  }
 
   /**
    * The velocity of the actor last frame (vx, vy) in pixels/second
@@ -102,7 +147,13 @@ export class Body implements Clonable<Body> {
    * The curret acceleration vector (ax, ay) of the actor in pixels/second/second. An acceleration pointing down such as (0, 100) may
    * be useful to simulate a gravitational effect.
    */
-  public acc: Vector = new Vector(0, 0);
+  public get acc(): Vector {
+    return this.transform.acc;
+  }
+
+  public set acc(acc: Vector) {
+    this.transform.acc = acc;
+  }
 
   /**
    * Gets/sets the acceleration of the actor from the last frame. This does not include the global acc [[Physics.acc]].
@@ -127,7 +178,13 @@ export class Body implements Clonable<Body> {
   /**
    * The rotation of the actor in radians
    */
-  public rotation: number = 0; // radians
+  public get rotation(): number {
+    return this.transform.rotation;
+  }
+
+  public set rotation(rotation: number) {
+    this.transform.rotation = rotation;
+  }
 
   /**
    * The scale vector of the actor
@@ -155,7 +212,22 @@ export class Body implements Clonable<Body> {
   /**
    * The rotational velocity of the actor in radians/second
    */
-  public rx: number = 0; //radians/sec
+  @obsolete({ message: 'Body.rx will be removed in v0.25.0', alternateMethod: 'Use Body.angularVelocity instead' })
+  public get rx(): number {
+    return this.transform.angularVelocity;
+  }
+
+  public set rx(angularVelocity: number) {
+    this.transform.angularVelocity = angularVelocity;
+  }
+
+  public get angularVelocity(): number {
+    return this.transform.angularVelocity;
+  }
+
+  public set angularVelocity(angularVelocity: number) {
+    this.transform.angularVelocity = angularVelocity;
+  }
 
   private _geometryDirty = false;
 
@@ -215,8 +287,8 @@ export class Body implements Clonable<Body> {
     this.vel.addEqual(totalAcc.scale(seconds));
     this.pos.addEqual(this.vel.scale(seconds)).addEqual(totalAcc.scale(0.5 * seconds * seconds));
 
-    this.rx += this.torque * (1.0 / this.collider.inertia) * seconds;
-    this.rotation += this.rx * seconds;
+    this.angularVelocity += this.torque * (1.0 / this.collider.inertia) * seconds;
+    this.rotation += this.angularVelocity * seconds;
 
     this.scale.x += (this.sx * delta) / 1000;
     this.scale.y += (this.sy * delta) / 1000;
@@ -246,7 +318,9 @@ export class Body implements Clonable<Body> {
    */
   @obsolete({ message: 'Will be removed in v0.24.0', alternateMethod: 'Body.useBoxCollider' })
   public useBoxCollision(center: Vector = Vector.Zero) {
-    this.useBoxCollider(this.actor.width, this.actor.height, this.actor.anchor, center);
+    if (isActor(this.entity)) {
+      this.useBoxCollider(this.entity.width, this.entity.height, this.entity.anchor, center);
+    }
   }
 
   /**
@@ -312,23 +386,26 @@ export class Body implements Clonable<Body> {
   private _wireColliderEventsToActor() {
     this.collider.clear();
     this.collider.on('precollision', (evt: PreCollisionEvent<Collider>) => {
-      if (this.actor) {
-        this.actor.emit('precollision', new PreCollisionEvent(evt.target.body.actor, evt.other.body.actor, evt.side, evt.intersection));
+      if (this.entity) {
+        this.entity.emit('precollision', new PreCollisionEvent(evt.target.body.entity, evt.other.body.entity, evt.side, evt.intersection));
       }
     });
     this.collider.on('postcollision', (evt: PostCollisionEvent<Collider>) => {
-      if (this.actor) {
-        this.actor.emit('postcollision', new PostCollisionEvent(evt.target.body.actor, evt.other.body.actor, evt.side, evt.intersection));
+      if (this.entity) {
+        this.entity.emit(
+          'postcollision',
+          new PostCollisionEvent(evt.target.body.entity, evt.other.body.entity, evt.side, evt.intersection)
+        );
       }
     });
     this.collider.on('collisionstart', (evt: CollisionStartEvent<Collider>) => {
-      if (this.actor) {
-        this.actor.emit('collisionstart', new CollisionStartEvent(evt.target.body.actor, evt.other.body.actor, evt.pair));
+      if (this.entity) {
+        this.entity.emit('collisionstart', new CollisionStartEvent(evt.target.body.entity, evt.other.body.entity, evt.pair));
       }
     });
     this.collider.on('collisionend', (evt: CollisionEndEvent<Collider>) => {
-      if (this.actor) {
-        this.actor.emit('collisionend', new CollisionEndEvent(evt.target.body.actor, evt.other.body.actor));
+      if (this.entity) {
+        this.entity.emit('collisionend', new CollisionEndEvent(evt.target.body.entity, evt.other.body.entity));
       }
     });
   }

@@ -40,6 +40,8 @@ import * as Util from './Util/Util';
 import * as Events from './Events';
 import { BoundingBox } from './Collision/BoundingBox';
 import { BrowserEvents } from './Util/Browser';
+import { System } from './EntityComponentSystem/System';
+import { DrawingSystem } from './EntityComponentSystem/DrawingSystem';
 
 /**
  * Enum representing the different display modes available to Excalibur
@@ -185,7 +187,7 @@ export interface EngineOptions {
  */
 export class Engine extends Class implements CanInitialize, CanUpdate, CanDraw {
   /**
-   *
+   * Browser event facade for window and document
    */
   public browser: BrowserEvents;
 
@@ -203,6 +205,15 @@ export class Engine extends Class implements CanInitialize, CanUpdate, CanDraw {
    * Direct access to the canvas element ID, if an ID exists
    */
   public canvasElementId: string;
+
+  /**
+   * Current list of systems
+   */
+  public systems: System[];
+
+  public buildDefaultSystems(engine: Engine): System[] {
+    return [new DrawingSystem(engine.ctx)];
+  }
 
   /**
    * The width of the game canvas in pixels (physical width component of the
@@ -1019,6 +1030,8 @@ O|===|* >________________>\n\
     if (!this.canvasElementId) {
       document.body.appendChild(this.canvas);
     }
+
+    this.systems = this.buildDefaultSystems(this);
   }
 
   public onInitialize(_engine: Engine) {
@@ -1231,10 +1244,6 @@ O|===|* >________________>\n\
       // Drawing nothing else while loading
       return;
     }
-
-    ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
-    ctx.fillStyle = this.backgroundColor.toString();
-    ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
 
     this.currentScene.draw(this.ctx, delta);
 

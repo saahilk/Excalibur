@@ -1,8 +1,9 @@
 import { Color } from './Color';
 import * as Effects from './SpriteEffects';
 
-import { Drawable } from '../Interfaces/Drawable';
+import { Drawable } from './Drawable';
 import { Vector } from '../Algebra';
+import { BoundingBox } from '../Collision/Index';
 
 /**
  * Creates a closed polygon drawing given a list of [[Vector]]s.
@@ -36,33 +37,19 @@ export class Polygon implements Drawable {
   public filled: boolean = false;
 
   private _points: Vector[] = [];
-  public anchor = new Vector(0, 0);
+  public anchor = Vector.Zero;
+  public offset = Vector.Zero;
   public rotation: number = 0;
-  public scale = new Vector(1, 1);
+  public scale = Vector.One;
 
   /**
    * @param points  The vectors to use to build the polygon in order
    */
   constructor(points: Vector[]) {
-    this._points = points;
+    const bb = BoundingBox.fromPoints(points);
 
-    const minX = this._points.reduce((prev: number, curr: Vector) => {
-      return Math.min(prev, curr.x);
-    }, 0);
-    const maxX = this._points.reduce((prev: number, curr: Vector) => {
-      return Math.max(prev, curr.x);
-    }, 0);
-
-    this.drawWidth = maxX - minX;
-
-    const minY = this._points.reduce((prev: number, curr: Vector) => {
-      return Math.min(prev, curr.y);
-    }, 0);
-    const maxY = this._points.reduce((prev: number, curr: Vector) => {
-      return Math.max(prev, curr.y);
-    }, 0);
-
-    this.drawHeight = maxY - minY;
+    this.drawWidth = bb.width;
+    this.drawHeight = bb.height;
 
     this.height = this.drawHeight;
     this.width = this.drawWidth;
@@ -96,13 +83,21 @@ export class Polygon implements Drawable {
     // not supported on polygons
   }
 
+  public get loaded() {
+    return true;
+  }
+
   public reset() {
-    //pass
+    // pass
+  }
+
+  public tick(_delta: number) {
+    // do nothing
   }
 
   public draw(ctx: CanvasRenderingContext2D, x: number, y: number) {
     ctx.save();
-    ctx.translate(x + this.anchor.x, y + this.anchor.y);
+    ctx.translate(x + this.drawWidth * this.anchor.x + this.offset.x, y + this.drawHeight * this.anchor.y + this.offset.y);
     ctx.scale(this.scale.x, this.scale.y);
     ctx.rotate(this.rotation);
     ctx.beginPath();

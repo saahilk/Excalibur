@@ -9,6 +9,7 @@ import { Side } from './Collision/Side';
 import * as Input from './Input/Index';
 import { Pair, Camera } from './index';
 import { Collider } from './Collision/Collider';
+import { Entity } from './EntityComponentSystem/Entity';
 
 export enum EventTypes {
   Kill = 'kill',
@@ -290,8 +291,8 @@ export class GameStopEvent extends GameEvent<Engine> {
  * transform so that all drawing takes place with the actor as the origin.
  *
  */
-export class PreDrawEvent extends GameEvent<Actor | Scene | Engine | TileMap> {
-  constructor(public ctx: CanvasRenderingContext2D, public delta: number, public target: Actor | Scene | Engine | TileMap) {
+export class PreDrawEvent extends GameEvent<Entity | Scene | Engine | TileMap> {
+  constructor(public ctx: CanvasRenderingContext2D, public delta: number, public target: Entity | Scene | Engine | TileMap) {
     super();
   }
 }
@@ -301,8 +302,8 @@ export class PreDrawEvent extends GameEvent<Actor | Scene | Engine | TileMap> {
  * transform so that all drawing takes place with the actor as the origin.
  *
  */
-export class PostDrawEvent extends GameEvent<Actor | Scene | Engine | TileMap> {
-  constructor(public ctx: CanvasRenderingContext2D, public delta: number, public target: Actor | Scene | Engine | TileMap) {
+export class PostDrawEvent extends GameEvent<Entity | Scene | Engine | TileMap> {
+  constructor(public ctx: CanvasRenderingContext2D, public delta: number, public target: Entity | Scene | Engine | TileMap) {
     super();
   }
 }
@@ -450,7 +451,7 @@ export class HiddenEvent extends GameEvent<Engine> {
 /**
  * Event thrown on an [[Actor|actor]] when a collision will occur this frame if it resolves
  */
-export class PreCollisionEvent<T extends Collider | Actor = Actor> extends GameEvent<T> {
+export class PreCollisionEvent<T extends Collider | Entity = Entity> extends GameEvent<T> {
   /**
    * @param actor         The actor the event was thrown on
    * @param other         The actor that will collided with the current actor
@@ -474,7 +475,7 @@ export class PreCollisionEvent<T extends Collider | Actor = Actor> extends GameE
 /**
  * Event thrown on an [[Actor|actor]] when a collision has been resolved (body reacted) this frame
  */
-export class PostCollisionEvent<T extends Collider | Actor = Actor> extends GameEvent<T> {
+export class PostCollisionEvent<T extends Collider | Entity = Entity> extends GameEvent<T> {
   /**
    * @param actor         The actor the event was thrown on
    * @param other         The actor that did collide with the current actor
@@ -498,7 +499,7 @@ export class PostCollisionEvent<T extends Collider | Actor = Actor> extends Game
 /**
  * Event thrown the first time an [[Actor|actor]] collides with another, after an actor is in contact normal collision events are fired.
  */
-export class CollisionStartEvent<T extends Collider | Actor = Actor> extends GameEvent<T> {
+export class CollisionStartEvent<T extends Collider | Entity = Entity> extends GameEvent<T> {
   /**
    *
    * @param actor
@@ -522,7 +523,7 @@ export class CollisionStartEvent<T extends Collider | Actor = Actor> extends Gam
 /**
  * Event thrown when the [[Actor|actor]] is no longer colliding with another
  */
-export class CollisionEndEvent<T extends Collider | Actor = Actor> extends GameEvent<T> {
+export class CollisionEndEvent<T extends Collider | Entity = Entity> extends GameEvent<T> {
   /**
    *
    */

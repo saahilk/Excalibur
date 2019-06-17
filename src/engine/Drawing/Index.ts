@@ -2,6 +2,7 @@ export { Animation, AnimationArgs } from './Animation';
 export * from './Color';
 export * from './Polygon';
 export { Sprite, SpriteArgs } from './Sprite';
+export * from './Drawable';
 export { SpriteSheet, SpriteFont, SpriteSheetArgs, SpriteFontArgs as SpriteFontInitArgs, SpriteFontOptions } from './SpriteSheet';
 
 import * as effects from './SpriteEffects';

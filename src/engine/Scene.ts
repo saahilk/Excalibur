@@ -30,6 +30,8 @@ import * as ActorUtils from './Util/Actors';
 import { Trigger } from './Trigger';
 import { obsolete } from './Util/Decorators';
 import { Body } from './Collision/Body';
+import { EntityRepository } from './EntityComponentSystem/EntityRepository';
+import { Entity } from './EntityComponentSystem/Entity';
 /**
  * [[Actor|Actors]] are composed together into groupings called Scenes in
  * Excalibur. The metaphor models the same idea behind real world
@@ -49,6 +51,11 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
    * The actors in the current scene
    */
   public actors: Actor[] = [];
+
+  /**
+   * Repository of entities in this Scene
+   */
+  public entities: EntityRepository = new EntityRepository();
 
   /**
    * Physics bodies in the current scene
@@ -353,6 +360,19 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
       this.tileMaps[i].update(engine, delta);
     }
 
+    for (const s of engine.systems) {
+      s.preupdate(engine, delta);
+    }
+
+    for (const s of engine.systems) {
+      const entitiesByTypes = this.entities.queryByTypes(s.types);
+      s.update(entitiesByTypes, delta);
+    }
+
+    for (const s of engine.systems) {
+      s.postupdate(engine, delta);
+    }
+
     // Cycle through actors updating actors
     for (i = 0, len = this.actors.length; i < len; i++) {
       this.actors[i].update(engine, delta);
@@ -532,6 +552,10 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
    */
   public add(uiActor: UIActor): void;
   public add(entity: any): void {
+    if (entity instanceof Entity) {
+      this.entities.insert(entity);
+    }
+
     if (entity instanceof Actor) {
       (<Actor>entity).unkill();
     }
@@ -585,6 +609,10 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
    */
   public remove(uiActor: UIActor): void;
   public remove(entity: any): void {
+    if (entity instanceof Entity) {
+      this.entities.remove(entity.id);
+    }
+
     if (entity instanceof UIActor) {
       this.removeUIActor(entity);
       return;

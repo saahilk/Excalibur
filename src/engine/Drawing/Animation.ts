@@ -3,7 +3,7 @@ import { AnimationArgs } from '../Drawing/Animation';
 import * as Effects from './SpriteEffects';
 import { Color } from './Color';
 
-import { Drawable } from '../Interfaces/Drawable';
+import { Drawable } from './Drawable';
 import { Vector } from '../Algebra';
 import { Engine } from '../Engine';
 import * as Util from '../Util/Util';
@@ -29,11 +29,13 @@ export class AnimationImpl implements Drawable {
    */
   public currentFrame: number = 0;
 
-  private _oldTime: number = Date.now();
+  private _elapsedTime: number = Date.now();
+  private _resolveDonePlaying: (value?: Animation | PromiseLike<Animation>) => void = null;
 
-  public anchor: Vector = new Vector(0.0, 0.0);
+  public anchor: Vector = Vector.Zero;
+  public offset: Vector = Vector.Zero;
   public rotation: number = 0.0;
-  public scale: Vector = new Vector(1, 1);
+  public scale: Vector = Vector.One;
 
   /**
    * Indicates whether the animation should loop after it is completed
@@ -62,6 +64,8 @@ export class AnimationImpl implements Drawable {
   public drawHeight: number = 0;
   public width: number = 0;
   public height: number = 0;
+
+  private _loaded: boolean = false;
 
   /**
    * Typically you will use a [[SpriteSheet]] to generate an [[Animation]].
@@ -237,17 +241,23 @@ export class AnimationImpl implements Drawable {
     return !this.loop && this.currentFrame >= this.sprites.length;
   }
 
-  /**
-   * Not meant to be called by game developers. Ticks the animation forward internally and
-   * calculates whether to change to the frame.
-   * @internal
-   */
-  public tick() {
-    const time = Date.now();
-    if (time - this._oldTime > this.speed) {
-      this.currentFrame = this.loop ? (this.currentFrame + 1) % this.sprites.length : this.currentFrame + 1;
-      this._oldTime = time;
+  public get loaded() {
+    if (this._loaded) {
+      return true;
+    } else {
+      this._loaded = this.sprites.reduce((loaded, sprite) => {
+        return sprite.loaded && loaded;
+      }, true);
     }
+    return this._loaded;
+  }
+
+  public tick(delta: number) {
+    if (this._elapsedTime >= this.speed) {
+      this.currentFrame = this.loop ? (this.currentFrame + 1) % this.sprites.length : this.currentFrame + 1;
+      this._elapsedTime = 0;
+    }
+    this._elapsedTime += delta;
   }
 
   private _updateValues(): void {
@@ -265,7 +275,6 @@ export class AnimationImpl implements Drawable {
   }
 
   public draw(ctx: CanvasRenderingContext2D, x: number, y: number) {
-    this.tick();
     this._updateValues();
     let currSprite: Sprite;
     if (this.currentFrame < this.sprites.length) {
@@ -289,6 +298,10 @@ export class AnimationImpl implements Drawable {
       this.drawWidth = currSprite.drawWidth;
       this.drawHeight = currSprite.drawHeight;
     }
+
+    if (this.isDone && this._resolveDonePlaying) {
+      this._resolveDonePlaying(this);
+    }
   }
 
   /**
@@ -296,9 +309,12 @@ export class AnimationImpl implements Drawable {
    * @param x  The x position in the game to play
    * @param y  The y position in the game to play
    */
-  public play(x: number, y: number) {
+  public play(x: number, y: number): Promise<Animation> {
     this.reset();
     this._engine.playAnimation(this, x, y);
+    return new Promise<Animation>((resolve) => {
+      this._resolveDonePlaying = resolve;
+    });
   }
 }
 

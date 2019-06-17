@@ -1,7 +1,7 @@
 import * as Effects from './SpriteEffects';
 import { Color } from './Color';
 
-import { Drawable } from '../Interfaces/Drawable';
+import { Drawable } from './Drawable';
 import { Texture } from '../Resources/Texture';
 import { Vector } from '../Algebra';
 import { Logger } from '../Util/Log';
@@ -26,8 +26,9 @@ export class SpriteImpl implements Drawable {
   }
 
   public rotation: number = 0.0;
-  public anchor: Vector = new Vector(0.0, 0.0);
-  public scale: Vector = new Vector(1, 1);
+  public anchor: Vector = Vector.Zero;
+  public offset: Vector = Vector.Zero;
+  public scale: Vector = Vector.One;
 
   public logger: Logger = Logger.getInstance();
 
@@ -291,6 +292,18 @@ export class SpriteImpl implements Drawable {
     this._applyEffects();
   }
 
+  public get loaded() {
+    return this._pixelsLoaded && this._texture.isLoaded();
+  }
+
+  /**
+   *
+   * @param _delta
+   */
+  public tick(_delta: number) {
+    // do nothing
+  }
+
   /**
    * Resets the internal state of the drawing (if any)
    */
@@ -323,8 +336,8 @@ export class SpriteImpl implements Drawable {
 
     // calculating current dimensions
     ctx.save();
-    const xpoint = this.drawWidth * this.anchor.x;
-    const ypoint = this.drawHeight * this.anchor.y;
+    const xpoint = this.drawWidth * this.anchor.x + this.offset.x;
+    const ypoint = this.drawHeight * this.anchor.y + this.offset.y;
     ctx.translate(x, y);
     ctx.rotate(this.rotation);
 
