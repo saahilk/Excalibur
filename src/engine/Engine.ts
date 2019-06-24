@@ -212,7 +212,7 @@ export class Engine extends Class implements CanInitialize, CanUpdate, CanDraw {
   public systems: System[];
 
   public buildDefaultSystems(engine: Engine): System[] {
-    return [new DrawingSystem(engine.ctx)];
+    return [new DrawingSystem(engine)];
   }
 
   /**

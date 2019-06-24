@@ -2,11 +2,14 @@ import { Entity, RemovedComponent, AddedComponent, isAddedComponent, isRemovedCo
 import { Component } from './Component';
 import { Observer } from '../Util/Observable';
 import { Type } from './Types';
+import { System } from './System';
+import { Util } from '..';
 
 export class EntityRepository implements Observer<RemovedComponent | AddedComponent> {
   private _dirty: { [compositeKey: string]: boolean } = {};
   private _memo: { [compositeKey: string]: Entity[] } = {};
 
+  public systems: System[] = [];
   public typeIndex: { [type: string]: Entity[] } = {}; // todo entity arrays are slow, binary search
   public entityIndex: { [id: string]: Entity } = {};
 
@@ -51,28 +54,74 @@ export class EntityRepository implements Observer<RemovedComponent | AddedCompon
   notify(message: RemovedComponent | AddedComponent): void {
     if (isAddedComponent(message)) {
       this._addOrUpdateFromIndexes(message.data.entity, message.data.component);
+      this._addToSystems(message.data.entity);
     }
 
     if (isRemovedComponent(message)) {
       this._removeFromIndexes(message.data.entity, message.data.component);
+      this._removeFromSystems(message.data.entity, message.data.component);
     }
   }
 
-  public insert(entity: Entity) {
-    this.entityIndex[entity.id] = entity;
-    for (let c in entity.components) {
-      this._addOrUpdateFromIndexes(entity, entity.components[c]);
+  private _addToSystems(entity: Entity) {
+    for (const s of this.systems) {
+      let matches = true;
+      for (const systemType of s.types) {
+        matches = matches && entity.types.indexOf(systemType) > -1;
+      }
+      if (matches) {
+        s.onEntityAdd(entity);
+      }
     }
-    entity.changes.register(this);
+  }
+
+  addSystem(system: System): void {
+    const entities = this.queryByTypes(system.types);
+    for (const e of entities) {
+      system.onEntityAdd(e);
+    }
+    this.systems.push(system);
+  }
+
+  private _removeFromSystems(entity: Entity, component: Component) {
+    for (const s of this.systems) {
+      let matches = true;
+      for (const systemType of s.types) {
+        matches = matches && [...entity.types, component.type].indexOf(systemType) > -1;
+      }
+      if (matches) {
+        s.onEntityRemove(entity);
+      }
+    }
+  }
+
+  removeSystem(system: System): void {
+    const entities = this.queryByTypes(system.types);
+    for (const e of entities) {
+      system.onEntityRemove(e);
+    }
+    Util.removeItemFromArray(system, this.systems);
+  }
+
+  public insert(entity: Entity): void {
+    if (entity) {
+      this.entityIndex[entity.id] = entity;
+      for (const c in entity.components) {
+        this._addOrUpdateFromIndexes(entity, entity.components[c]);
+      }
+      entity.changes.register(this);
+    }
   }
 
   public remove(id: number) {
-    delete this.entityIndex[id];
     const entity = this.entityIndex[id];
-    for (const c in entity.components) {
-      this._removeFromIndexes(entity, entity.components[c]);
+    delete this.entityIndex[id];
+    if (entity) {
+      for (const c in entity.components) {
+        this._removeFromIndexes(entity, entity.components[c]);
+      }
+      entity.changes.unregister(this);
     }
-    entity.changes.unregister(this);
   }
 
   public queryById(id: number): Entity {

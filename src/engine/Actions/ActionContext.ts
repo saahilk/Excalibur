@@ -137,40 +137,6 @@ export class ActionContext {
   }
 
   /**
-   * This method will scale an actor to the specified size at the speed
-   * specified (in magnitude increase per second) and return back the
-   * actor. This method is part of the actor 'Action' fluent API allowing
-   * action chaining.
-   * @param sizeX   The scaling factor to apply on X axis
-   * @param sizeY   The scaling factor to apply on Y axis
-   * @param speedX  The speed of scaling specified in magnitude increase per second on X axis
-   * @param speedY  The speed of scaling specified in magnitude increase per second on Y axis
-   */
-  public scaleTo(sizeX: number, sizeY: number, speedX: number, speedY: number): ActionContext {
-    const len = this._queues.length;
-    for (let i = 0; i < len; i++) {
-      this._queues[i].add(new Actions.ScaleTo(this._actors[i], sizeX, sizeY, speedX, speedY));
-    }
-    return this;
-  }
-
-  /**
-   * This method will scale an actor by an amount relative to the current scale at a certin speed in scale units/sec
-   * and return back the actor. This method is part of the
-   * actor 'Action' fluent API allowing action chaining.
-   * @param sizeOffsetX   The scaling factor to apply on X axis
-   * @param sizeOffsetY   The scaling factor to apply on Y axis
-   * @param speed    The speed to scale at in scale units/sec
-   */
-  public scaleBy(sizeOffsetX: number, sizeOffsetY: number, speed: number): ActionContext {
-    const len = this._queues.length;
-    for (let i = 0; i < len; i++) {
-      this._queues[i].add(new Actions.ScaleBy(this._actors[i], sizeOffsetX, sizeOffsetY, speed));
-    }
-    return this;
-  }
-
-  /**
    * This method will cause an actor to blink (become visible and not
    * visible). Optionally, you may specify the number of blinks. Specify the amount of time
    * the actor should be visible per blink, and the amount of time not visible.

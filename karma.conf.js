@@ -32,13 +32,13 @@ module.exports = (config) => {
               transpileOnly: true // speeds up tests a TON by only using webpack resolution
             }
           },
-          {
-            test: /\excalibur.js$/,
-            use: {
-              loader: 'istanbul-instrumenter-loader',
-              options: { esModules: true }
-            }
-          }
+          // {
+          //   test: /\excalibur.js$/,
+          //   use: {
+          //     loader: 'istanbul-instrumenter-loader',
+          //     options: { esModules: true }
+          //   }
+          // }
         ]
       }
     },
@@ -66,7 +66,7 @@ module.exports = (config) => {
     browsers: ['ChromeHeadless_with_audio'],
     customLaunchers: {
       ChromeHeadless_with_audio: {
-          base: 'ChromeHeadless',
+          base: 'Chrome',
           flags: ['--autoplay-policy=no-user-gesture-required']
       },
       ChromeHeadless_with_debug: {

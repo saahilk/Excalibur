@@ -26,7 +26,7 @@ export class SpriteImpl implements Drawable {
   }
 
   public rotation: number = 0.0;
-  public anchor: Vector = Vector.Zero;
+  public anchor: Vector = Vector.Half;
   public offset: Vector = Vector.Zero;
   public scale: Vector = Vector.One;
 

@@ -370,85 +370,56 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
    * values between 0 and 1. For example, anchoring to the top-left would be
    * `Actor.anchor.setTo(0, 0)` and top-right would be `Actor.anchor.setTo(0, 1)`.
    */
-  public anchor: Vector;
+  public get anchor() {
+    const drawing = this.components[ComponentTypes.Drawing] as DrawingComponent;
+    if (drawing && drawing.current) {
+      return drawing.current.anchor;
+    }
+    if (drawing) {
+      return drawing.noDrawingAnchor;
+    }
 
-  private _height: number = 0;
-  private _width: number = 0;
-
-  /**
-   * Gets the scale vector of the actor
-   * @obsolete ex.Actor.scale will be removed in v0.24.0, set width and height directly in constructor
-   */
-  public get scale(): Vector {
-    return this.body.scale;
+    return Vector.Half;
   }
 
-  /**
-   * Sets the scale vector of the actor for
-   * @obsolete ex.Actor.scale will be removed in v0.24.0, set width and height directly in constructor
-   */
-  public set scale(scale: Vector) {
-    this.body.scale = scale;
+  public set anchor(anchor: Vector) {
+    const drawing = this.components[ComponentTypes.Drawing] as DrawingComponent;
+    if (drawing && drawing.current) {
+      drawing.current.anchor = anchor;
+    }
+    if (drawing) {
+      drawing.noDrawingAnchor = anchor;
+    }
   }
 
-  /**
-   * Gets the old scale of the actor last frame
-   * @obsolete ex.Actor.scale will be removed in v0.24.0, set width and height directly in constructor
-   */
-  public get oldScale(): Vector {
-    return this.body.oldScale;
-  }
-
-  /**
-   * Sets the the old scale of the acotr last frame
-   * @obsolete ex.Actor.scale will be removed in v0.24.0, set width and height directly in constructor
-   */
-  public set oldScale(scale: Vector) {
-    this.body.oldScale = scale;
-  }
-
-  /**
-   * Gets the x scalar velocity of the actor in scale/second
-   * @obsolete ex.Actor.sx will be removed in v0.24.0, set width and height directly in constructor
-   */
-  public get sx(): number {
-    return this.body.sx;
-  }
-
-  /**
-   * Sets the x scalar velocity of the actor in scale/second
-   * @obsolete ex.Actor.sx will be removed in v0.24.0, set width and height directly in constructor
-   */
-  @obsolete({ message: 'ex.Actor.sx will be removed in v0.24.0', alternateMethod: 'Set width and height directly in constructor' })
-  public set sx(scalePerSecondX: number) {
-    this.body.sx = scalePerSecondX;
-  }
-
-  /**
-   * Gets the y scalar velocity of the actor in scale/second
-   * @obsolete ex.Actor.sy will be removed in v0.24.0, set width and height directly in constructor
-   */
-  public get sy(): number {
-    return this.body.sy;
-  }
-
-  /**
-   * Sets the y scale velocity of the actor in scale/second
-   * @obsolete ex.Actor.sy will be removed in v0.24.0, set width and height directly in constructor
-   */
-  @obsolete({ message: 'ex.Actor.sy will be removed in v0.24.0', alternateMethod: 'Set width and height directly in constructor' })
-  public set sy(scalePerSecondY: number) {
-    this.body.sy = scalePerSecondY;
-  }
+  // public anchor: Vector;
 
   /**
    * Indicates whether the actor is physically in the viewport
    */
   public isOffScreen: boolean = false;
+
   /**
-   * The visibility of an actor
+   * The visibility of an actor drawing
    */
-  public visible: boolean = true;
+  public get visible(): boolean {
+    const drawing = this.components[ComponentTypes.Drawing] as DrawingComponent;
+    if (drawing) {
+      return drawing.visible;
+    }
+    return false;
+  }
+
+  /**
+   * The visibility of an actor drawing
+   */
+  public set visible(visible: boolean) {
+    const drawing = this.components[ComponentTypes.Drawing] as DrawingComponent;
+    if (drawing) {
+      drawing.visible = visible;
+    }
+  }
+
   /**
    * The opacity of an actor. Passing in a color in the [[constructor]] will use the
    * color's opacity.
@@ -556,7 +527,6 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
     captureDragEvents: false
   };
 
-  private _zIndex: number = 0;
   private _isKilled: boolean = false;
   private _opacityFx = new Effects.Opacity(this.opacity);
 
@@ -600,8 +570,8 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
     }
 
     // Body and collider bounds are still determined by actor width/height
-    this._width = width || 0;
-    this._height = height || 0;
+    this.width = width || 0;
+    this.height = height || 0;
 
     // Initialize default collider to be a box
     if (shouldInitializeBody) {
@@ -609,7 +579,7 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
         transform: this.components[ComponentTypes.Transform] as TransformComponent,
         collider: new Collider({
           type: CollisionType.Passive,
-          shape: Shape.Box(this._width, this._height, this.anchor)
+          shape: Shape.Box(this.width, this.height, this.anchor)
         })
       });
     }
@@ -1034,22 +1004,12 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
    * @param key The `enum` key of the drawing
    */
   public setDrawing(key: number): void;
+  @obsolete()
   public setDrawing(key: any): void {
     const drawing = this.components[ComponentTypes.Drawing] as DrawingComponent;
     if (drawing) {
       drawing.show(key);
     }
-
-    /**
-    key = key.toString();
-    if (this.currentDrawing !== this.frames[<string>key]) {
-      if (this.frames[key] != null) {
-        this.frames[key].reset();
-        this.currentDrawing = this.frames[key];
-      } else {
-        Logger.getInstance().error(`the specified drawing key ${key} does not exist`);
-      }
-    } */
   }
 
   /**
@@ -1066,45 +1026,47 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
    * @param drawing This can be an [[Animation]], [[Sprite]], or [[Polygon]].
    */
   public addDrawing(key: any, drawing: Drawable): void;
+  @obsolete()
   public addDrawing(): void {
     const drawing = this.components[ComponentTypes.Drawing] as DrawingComponent;
     if (drawing) {
       if (arguments.length === 2) {
         drawing.add(<string>arguments[0], arguments[1]);
-        // this.frames[<string>arguments[0]] = arguments[1];
-        // if (!this.currentDrawing) {
-        //   this.currentDrawing = arguments[1];
-        // }
-        // this._effectsDirty = true;
       } else {
         if (arguments[0] instanceof Sprite) {
           drawing.add('default', arguments[0]);
           drawing.show('default');
-          // this.addDrawing('default', arguments[0]);
         }
         if (arguments[0] instanceof Texture) {
           drawing.add('default', arguments[0].asSprite());
           drawing.show('default');
-          // this.addDrawing('default', arguments[0].asSprite());
         }
       }
     }
   }
 
   public get z(): number {
-    return this.getZIndex();
+    const transform = this.components[ComponentTypes.Transform] as TransformComponent;
+    if (transform) {
+      return transform.z;
+    }
+    return 0;
   }
 
   public set z(newZ: number) {
-    this.setZIndex(newZ);
+    const transform = this.components[ComponentTypes.Transform] as TransformComponent;
+    if (transform) {
+      transform.z = newZ;
+    }
   }
 
   /**
    * Gets the z-index of an actor. The z-index determines the relative order an actor is drawn in.
    * Actors with a higher z-index are drawn on top of actors with a lower z-index
    */
+  @obsolete()
   public getZIndex(): number {
-    return this._zIndex;
+    return this.z;
   }
 
   /**
@@ -1113,9 +1075,12 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
    * Actors with a higher z-index are drawn on top of actors with a lower z-index
    * @param newIndex new z-index to assign
    */
+  @obsolete()
   public setZIndex(newIndex: number) {
+    this.z = newIndex;
+
     this.scene.cleanupDrawTree(this);
-    this._zIndex = newIndex;
+    // this._zIndex = newIndex;
     this.scene.updateDrawTree(this);
   }
 
@@ -1162,53 +1127,47 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
   }
 
   public get width() {
-    return this._width * this.getGlobalScale().x;
+    const drawing = this.components[ComponentTypes.Drawing] as DrawingComponent;
+    if (drawing) {
+      return drawing.noDrawingWidth;
+    }
+    return 0;
+    // return this._width * this.getGlobalScale().x;
   }
 
   public set width(width: number) {
-    this._width = width / this.scale.x;
-    this.body.collider.shape = Shape.Box(this._width, this._height, this.anchor);
-    this.body.markCollisionShapeDirty();
-  }
+    const drawing = this.components[ComponentTypes.Drawing] as DrawingComponent;
+    if (drawing) {
+      drawing.noDrawingWidth = width;
+    }
 
-  /**
-   * Gets the calculated width of an actor, factoring in scale
-   */
-  @obsolete({ message: 'Will be removed in v0.24.0', alternateMethod: 'Actor.width' })
-  public getWidth() {
-    return this.width;
-  }
-  /**
-   * Sets the width of an actor, factoring in the current scale
-   */
-  @obsolete({ message: 'Will be removed in v0.24.0', alternateMethod: 'Actor.width' })
-  public setWidth(width: number) {
-    this.width = width;
+    // TODO should we event mess with collider shape here? this could be wrong
+    if (this.body && this.body.collider) {
+      this.body.collider.shape = Shape.Box(this.width, this.height, this.anchor);
+      this.body.markCollisionShapeDirty();
+    }
   }
 
   public get height() {
-    return this._height * this.getGlobalScale().y;
+    const drawing = this.components[ComponentTypes.Drawing] as DrawingComponent;
+    if (drawing) {
+      return drawing.noDrawingHeight;
+    }
+    return 0;
+    // return this._height * this.getGlobalScale().y;
   }
 
   public set height(height: number) {
-    this._height = height / this.scale.y;
-    this.body.collider.shape = Shape.Box(this._width, this._height, this.anchor);
-    this.body.markCollisionShapeDirty();
-  }
+    const drawing = this.components[ComponentTypes.Drawing] as DrawingComponent;
+    if (drawing) {
+      drawing.noDrawingHeight = height;
+    }
 
-  /**
-   * Gets the calculated height of an actor, factoring in scale
-   */
-  @obsolete({ message: 'Will be removed in v0.24.0', alternateMethod: 'Actor.height' })
-  public getHeight() {
-    return this.height;
-  }
-  /**
-   * Sets the height of an actor, factoring in the current scale
-   */
-  @obsolete({ message: 'Will be removed in v0.24.0', alternateMethod: 'Actor.height' })
-  public setHeight(height: number) {
-    this.height = height;
+    // TODO should we event mess with collider shape here? this could be wrong
+    if (this.body && this.body.collider) {
+      this.body.collider.shape = Shape.Box(this.width, this.height, this.anchor);
+      this.body.markCollisionShapeDirty();
+    }
   }
 
   /**
@@ -1281,35 +1240,23 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
     // calculate position
     const x = parents.reduceRight((px, p) => {
       if (p.parent) {
-        return px + p.pos.x * p.getGlobalScale().x;
+        return px + p.pos.x;
       }
       return px + p.pos.x;
     }, 0);
 
     const y = parents.reduceRight((py, p) => {
       if (p.parent) {
-        return py + p.pos.y * p.getGlobalScale().y;
+        return py + p.pos.y;
       }
       return py + p.pos.y;
     }, 0);
 
     // rotate around root anchor
-    const ra = root.getWorldPos(); // 10, 10
+    const ra = root.getWorldPos();
     const r = this.getWorldRotation();
 
     return new Vector(x, y).rotate(r, ra);
-  }
-
-  /**
-   * Gets the global scale of the Actor
-   */
-  public getGlobalScale(): Vector {
-    if (!this.parent) {
-      return new Vector(this.scale.x, this.scale.y);
-    }
-
-    const parentScale = this.parent.getGlobalScale();
-    return new Vector(this.scale.x * parentScale.x, this.scale.y * parentScale.y);
   }
 
   // #region Collision

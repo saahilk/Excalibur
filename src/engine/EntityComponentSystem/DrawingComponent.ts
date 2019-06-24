@@ -3,6 +3,7 @@ import { Component } from './component';
 import { ComponentTypes } from './Types';
 import { Entity } from './Entity';
 import { Drawable } from '../Drawing/Drawable';
+import { HasPreDraw, HasPostDraw } from '../Drawing/HasPreDraw';
 
 export interface HasTick {
   tick(delta: number): void;
@@ -29,18 +30,34 @@ export interface DrawingOptions {
    */
   visible?: boolean;
 
+  // TODO handle opacity
+
   /**
    * List of graphics
    */
   graphics?: { [graphicName: string]: Drawable };
+
+  /**
+   * If no drawing is specified, the width to use for draw calculations.
+   * For example in a custom draw with anchor in onPreDraw or onPostDraw
+   */
+  noDrawingWidth?: number;
+
+  /**
+   * If no drawing is specified, the height to use for draw calculations.
+   * For example in a custom draw with anchor in onPreDraw or onPostDraw
+   */
+  noDrawingHeight?: number;
+
+  /**
+   * Optional anchor override in relative to width and height of the current drawing, otherwise the current drawing anchor is used
+   */
+  noDrawingAnchor?: ex.Vector;
+
   /**
    * Optional offset in absolute pixels to shift all graphics in this component from each graphic's anchor (default is top left corner)
    */
   offset?: ex.Vector;
-  /**
-   * Optional scale to apply to each graphic in this component, does not scale any offset if used, a new offset must be specified.
-   */
-  scale?: ex.Vector;
 
   /**
    * Optional rotation to apply to each graphic in this component
@@ -51,30 +68,64 @@ export interface DrawingOptions {
 /**
  * Component to manage drawings, using with the position component
  */
-export class DrawingComponent implements Component {
+export class DrawingComponent implements Component, HasPreDraw, HasPostDraw {
   public readonly type = ComponentTypes.Drawing;
   public owner: Entity = null;
 
   private _currentDrawing: Drawable;
   private _graphics: { [graphicName: string]: Drawable } = {};
   constructor(options?: DrawingOptions) {
-    options = { visible: true, ...options };
-    const { current, visible, graphics, offset, scale } = options;
+    // Defaults
+    options = {
+      visible: this.visible,
+      noDrawingWidth: this.noDrawingWidth,
+      noDrawingHeight: this.noDrawingHeight,
+      noDrawingAnchor: this.noDrawingAnchor,
+      ...options
+    };
+
+    const { current, visible, graphics, offset, noDrawingWidth, noDrawingHeight, noDrawingAnchor } = options;
+
     this._graphics = graphics || {};
     this.offset = offset || this.offset;
-    this.scale = scale || this.scale;
     this.visible = !!visible;
+    this.noDrawingWidth = noDrawingWidth;
+    this.noDrawingHeight = noDrawingHeight;
+    this.noDrawingAnchor = noDrawingAnchor;
 
     if (current && this._graphics[current]) {
       this._currentDrawing = this._graphics[current];
     }
   }
 
+  public noDrawingAnchor: Vector = Vector.Half;
+
+  /**
+   * Sets or gets wether any drawing should be visible in this component
+   */
   public visible: boolean = true;
-  // TODO do we want these even?
+
+  /**
+   * Offset to apply to all drawings in this component
+   */
   public offset: Vector = Vector.Zero;
-  public scale: Vector = Vector.One;
+
+  /**
+   * Rotation to apply to all drawings in this component
+   */
   public rotation: number = 0;
+
+  /**
+   * If no drawing is specified, the height to use for draw calculations.
+   * For example in a custom draw with anchor in onPreDraw or onPostDraw
+   */
+  public noDrawingWidth: number = 0;
+
+  /**
+   * If no drawing is specified, the height to use for draw calculations.
+   * For example in a custom draw with anchor in onPreDraw or onPostDraw
+   */
+  public noDrawingHeight: number = 0;
 
   /**
    * Returns the currently displayed graphic, null if hidden
@@ -96,6 +147,9 @@ export class DrawingComponent implements Component {
    */
   public add(name: string, graphic: Drawable): void {
     this._graphics[name] = graphic;
+    if (name === 'default') {
+      this.show('default');
+    }
   }
 
   /**
@@ -115,6 +169,36 @@ export class DrawingComponent implements Component {
   public hide(): Promise<void> {
     this._currentDrawing = null;
     return Promise.resolve();
+  }
+
+  /**
+   * Returns the current drawings width in pixels, as it would appear on screen factoring width.
+   * If there isn't a current drawing returns [[DrawingComponent.noDrawingWidth]].
+   */
+  public get width(): number {
+    if (this._currentDrawing) {
+      return this._currentDrawing.drawWidth;
+    }
+    return this.noDrawingWidth;
+  }
+
+  /**
+   * Returns the current drawings height in pixels, as it would appear on screen factoring height.
+   * If there isn't a current drawing returns [[DrawingComponent.noDrawingHeight]].
+   */
+  public get height(): Number {
+    if (this._currentDrawing) {
+      return this._currentDrawing.drawHeight;
+    }
+    return this.noDrawingHeight;
+  }
+
+  public onPreDraw(_ctx: CanvasRenderingContext2D, _delta: number) {
+    // override me
+  }
+
+  public onPostDraw(_ctx: CanvasRenderingContext2D, _delta: number) {
+    // override me
   }
 
   /**

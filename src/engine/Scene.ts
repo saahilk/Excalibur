@@ -267,6 +267,9 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
    */
   public _activate(oldScene: Scene, newScene: Scene): void {
     this._logger.debug('Scene.onActivate', this);
+    for (const s of this._engine.systems) {
+      this.entities.addSystem(s);
+    }
     this.onActivate(oldScene, newScene);
   }
 
@@ -278,6 +281,9 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
    */
   public _deactivate(oldScene: Scene, newScene: Scene): void {
     this._logger.debug('Scene.onDectivate', this);
+    for (const s of this._engine.systems) {
+      this.entities.removeSystem(s);
+    }
     this.onDeactivate(oldScene, newScene);
   }
 

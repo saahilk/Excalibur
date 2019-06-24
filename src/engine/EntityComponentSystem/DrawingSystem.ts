@@ -5,11 +5,26 @@ import { Engine } from '../Engine';
 import { TransformComponent } from './TransformComponent';
 import { DrawingComponent } from './DrawingComponent';
 import { PreDrawEvent, PostDrawEvent } from '../Events';
+import { isActor } from '../Actor';
+import { Vector } from '../Algebra';
+import { hasPreDraw, hasPostDraw } from '../Drawing/HasPreDraw';
 
 export class DrawingSystem implements System {
   readonly types: Type[] = [ComponentTypes.Transform, ComponentTypes.Drawing];
 
-  constructor(public ctx: CanvasRenderingContext2D) {}
+  public ctx: CanvasRenderingContext2D;
+  constructor(public engine: Engine) {
+    this.ctx = engine.ctx;
+  }
+
+  onEntityAdd(_entity: Entity) {
+    // todo draw tree
+  }
+
+  onEntityRemove(_entity: Entity) {
+    // o draw tree
+  }
+
   /**
    * Update is called with enities that have a transform and drawing component
    */
@@ -27,43 +42,99 @@ export class DrawingSystem implements System {
 
       if (drawing.current) {
         drawing.current.tick(delta);
+      } else {
+        // TODO this is not good, couples collider geometry with drawing system
+        if (isActor(entity) && entity.color && entity.body && entity.body.collider && entity.body.collider.shape) {
+          this.ctx.save();
+          this.ctx.translate(transform.pos.x, transform.pos.y);
+          this.ctx.rotate(transform.rotation);
+
+          this.ctx.translate(-entity.width * entity.anchor.x, -entity.height * entity.anchor.y);
+
+          entity.body.collider.shape.draw(
+            this.ctx,
+            entity.color,
+            new Vector(entity.width * entity.anchor.x, entity.height * entity.anchor.y)
+          );
+          this.ctx.restore();
+        }
       }
 
-      if (drawing.current && drawing.current.loaded) {
-        const { scale: componentScale, offset: componentOffset } = drawing;
-        const { width, height, scale, anchor, offset } = drawing.current;
-        const totalScale = componentScale.scale(scale);
-        const totalOffset = componentOffset.add(offset);
+      const preDraw = () => {
+        if (hasPreDraw(entity)) {
+          this.ctx.save();
+          this.ctx.translate(
+            -drawing.width * drawing.noDrawingAnchor.x + drawing.offset.x,
+            -drawing.height * drawing.noDrawingAnchor.y + drawing.offset.y
+          );
+
+          entity.onPreDraw(this.ctx, delta);
+          this.ctx.restore();
+        }
+      };
+
+      const postDraw = () => {
+        if (hasPostDraw(entity)) {
+          this.ctx.save();
+          this.ctx.translate(
+            -drawing.width * drawing.noDrawingAnchor.x + drawing.offset.x,
+            -drawing.height * drawing.noDrawingAnchor.y + drawing.offset.y
+          );
+          entity.onPostDraw(this.ctx, delta);
+          this.ctx.restore();
+        }
+      };
+
+      // TODO handle offscreen
+      if ((drawing.current && drawing.current.loaded) || hasPostDraw(entity) || hasPreDraw(entity)) {
+        // const { /* offset: componentOffset, */ scale: componentScale } = drawing;
+        // const { /* width, height, anchor, offset, */ scale } = drawing.current;
+        // const totalScale = componentScale.scale(scale);
+        // const totalOffset = componentOffset.add(offset);
 
         // Setup transform
         this.ctx.save();
         this.ctx.translate(transform.pos.x, transform.pos.y);
         this.ctx.rotate(transform.rotation);
-        this.ctx.scale(totalScale.x, totalScale.y);
+        // this.ctx.scale(totalScale.x, totalScale.y);
 
         entity.emit('predraw', new PreDrawEvent(this.ctx, delta, entity));
+        preDraw();
+        if (drawing.current && drawing.visible) {
+          drawing.onPreDraw(this.ctx, delta);
 
-        // Perform anchor and offset calculations
-        const offsetX = -width * totalScale.x * anchor.x + totalOffset.x;
-        const offsetY = -height * totalScale.y * anchor.y + totalOffset.y;
+          // TODO handle sprite effects
 
-        // TODO handle effects effects
+          if (drawing.current) {
+            drawing.current.draw(this.ctx, 0, 0);
+          }
 
-        if (drawing.visible) {
-          drawing.current.draw(this.ctx, offsetX, offsetY);
+          drawing.onPostDraw(this.ctx, delta);
         }
-
+        postDraw();
         entity.emit('postdraw', new PostDrawEvent(this.ctx, delta, entity));
+
         this.ctx.restore();
       }
     }
   }
 
   preupdate(_engine: Engine, _delta: number): void {
-    _engine.ctx.clearRect(0, 0, _engine.canvasWidth, _engine.canvasHeight);
-    _engine.ctx.fillStyle = _engine.backgroundColor.toString();
-    _engine.ctx.fillRect(0, 0, _engine.canvasWidth, _engine.canvasHeight);
+    // Clear frame
+    this.ctx.clearRect(0, 0, _engine.canvasWidth, _engine.canvasHeight);
+    this.ctx.fillStyle = _engine.backgroundColor.toString();
+    this.ctx.fillRect(0, 0, _engine.canvasWidth, _engine.canvasHeight);
+
+    // Todo move this into normal draw to do 'UI' actors
+    // Establish camera offset
+    this.ctx.save();
+    if (this.engine && this.engine.currentScene && this.engine.currentScene.camera) {
+      this.engine.currentScene.camera.draw(this.ctx);
+    }
   }
 
-  postupdate(_engine: Engine, _delta: number): void {}
+  postupdate(_engine: Engine, _delta: number): void {
+    // Apply camera offset
+    this.ctx.restore();
+  }
 }
