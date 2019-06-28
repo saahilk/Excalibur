@@ -99,11 +99,15 @@ export class Entity extends Class {
 
   public removeComponent(componentOrType: string | Component) {
     if (typeof componentOrType === 'string') {
-      this.components[componentOrType].owner = null;
-      delete this.components[componentOrType];
+      if (this.components[componentOrType]) {
+        this.components[componentOrType].owner = null;
+        delete this.components[componentOrType];
+      }
     } else {
-      this.components[componentOrType.type].owner = null;
-      delete this.components[componentOrType.type];
+      if (this.components[componentOrType.type]) {
+        this.components[componentOrType.type].owner = null;
+        delete this.components[componentOrType.type];
+      }
     }
   }
 

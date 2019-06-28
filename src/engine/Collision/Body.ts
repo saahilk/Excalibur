@@ -9,6 +9,8 @@ import { Clonable } from '../Interfaces/Clonable';
 import { Shape } from './Shape';
 import { Entity } from '../EntityComponentSystem/Entity';
 import { TransformComponent } from '../EntityComponentSystem/TransformComponent';
+import { Component } from '../EntityComponentSystem/Component';
+import { Type, ComponentTypes } from '../EntityComponentSystem/Types';
 
 export interface BodyOptions {
   /**
@@ -17,6 +19,7 @@ export interface BodyOptions {
   entity?: Entity;
   /**
    * Optionally an actor to associate with this body
+   * @obsolete Use entity parameter
    */
   actor?: Actor;
   /**
@@ -32,7 +35,10 @@ export interface BodyOptions {
 /**
  * Body describes all the physical properties pos, vel, acc, rotation, angular velocity
  */
-export class Body implements Clonable<Body> {
+export class Body implements Component, Clonable<Body> {
+  public readonly type: Type = ComponentTypes.Body;
+  public owner: Entity;
+
   private _collider: Collider;
   public entity: Entity;
   @obsolete({ message: 'Body.actor will be removed in v0.25.0', alternateMethod: 'Use Body.entity instead' })
@@ -51,12 +57,10 @@ export class Body implements Clonable<Body> {
   /**
    * Constructs a new physics body associated with an actor
    */
-  constructor({ entity, actor, collider, transform }: BodyOptions) {
-    if (!entity && !collider) {
-      throw new Error('An entity or collider are required to create a body');
-    }
+  constructor(options: BodyOptions = {}) {
+    const { entity, actor, collider, transform } = options;
     // Body requires a transform
-    this.entity = entity || actor;
+    this.entity = this.owner = entity || actor;
     if (transform) {
       this.transform = transform;
     } else {
@@ -81,7 +85,7 @@ export class Body implements Clonable<Body> {
   public clone() {
     return new Body({
       entity: null,
-      collider: this.collider.clone()
+      collider: this.collider ? this.collider.clone() : null
     });
   }
 
@@ -163,7 +167,13 @@ export class Body implements Clonable<Body> {
   /**
    * The current torque applied to the actor
    */
-  public torque: number = 0;
+  public get torque(): number {
+    return this.transform.torque;
+  }
+
+  public set torque(torque: number) {
+    this.transform.torque = torque;
+  }
 
   /**
    * The current "motion" of the actor, used to calculated sleep in the physics simulation

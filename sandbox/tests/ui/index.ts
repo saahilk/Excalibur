@@ -16,6 +16,6 @@ for (var key in Resources) {
 game.start(loader).then(() => {
   // draw background
   var bg = new ex.UIActor();
-  bg.addDrawing(Resources.Background);
+  bg.drawing.add('default', Resources.Background.asSprite({ anchor: ex.Vector.Zero }));
   game.add(bg);
 });

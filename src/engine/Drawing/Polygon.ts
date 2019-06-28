@@ -37,10 +37,16 @@ export class Polygon implements Drawable {
   public filled: boolean = false;
 
   private _points: Vector[] = [];
-  public anchor = Vector.Zero;
+  public anchor = Vector.Half;
   public offset = Vector.Zero;
   public rotation: number = 0;
   public scale = Vector.One;
+
+  public get localBounds(): BoundingBox {
+    return BoundingBox.fromPoints(this._points)
+      .translate(this.offset)
+      .scale(this.scale);
+  }
 
   /**
    * @param points  The vectors to use to build the polygon in order

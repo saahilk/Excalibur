@@ -1,5 +1,6 @@
 import { Vector } from '../Algebra';
 import { HasEffects } from './HasEffects';
+import { BoundingBox } from '../Collision/Index';
 
 /**
  * Interface for implementing anything in Excalibur that can be drawn to the screen.
@@ -56,6 +57,11 @@ export interface Drawable extends HasEffects {
    * Gets the load status of the drawable
    */
   loaded: boolean;
+
+  /**
+   * Gets the bounds for the
+   */
+  localBounds: BoundingBox;
 
   /**
    * Tick the internal state of the drawable (if any)

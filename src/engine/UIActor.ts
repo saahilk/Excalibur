@@ -4,11 +4,15 @@ import { Actor, ActorArgs } from './Actor';
 import * as Traits from './Traits/Index';
 import { CollisionType } from './Collision/CollisionType';
 import { Shape } from './Collision/Shape';
+import { ComponentTypes } from './EntityComponentSystem/Types';
+import { TransformComponent, CoordPlane } from './EntityComponentSystem/TransformComponent';
+import { obsolete } from './Util/Decorators';
 
 /**
  * Helper [[Actor]] primitive for drawing UI's, optimized for UI drawing. Does
  * not participate in collisions. Drawn on top of all other actors.
  */
+@obsolete()
 export class UIActor extends Actor {
   protected _engine: Engine;
 
@@ -33,6 +37,8 @@ export class UIActor extends Actor {
     this.body.collider.type = CollisionType.PreventCollision;
     this.body.collider.shape = Shape.Box(this.width, this.height, this.anchor);
     this.enableCapturePointer = true;
+    const transform = this.components[ComponentTypes.Transform] as TransformComponent;
+    transform.coordPlane = CoordPlane.Screen;
   }
 
   public _initialize(engine: Engine) {

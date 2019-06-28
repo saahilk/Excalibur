@@ -12,12 +12,12 @@ export interface System {
    * When an entity is added that matches this system's types this method is called
    * @param entity
    */
-  onEntityAdd(entity: Entity): void;
+  onEntityAdd?: (entity: Entity) => void;
   /**
    * When an entity no longer matches this system's types this method is called
    * @param entity
    */
-  onEntityRemove(entity: Entity): void;
+  onEntityRemove?: (entity: Entity) => void;
 
   /**
    * Update all entities that match this system's types
@@ -25,6 +25,7 @@ export interface System {
    * @param delta Time in milliseconds
    */
   update(entities: Entity[], delta: number): void;
-  preupdate(engine: Engine, delta: number): void;
-  postupdate(engine: Engine, delta: number): void;
+
+  preupdate?: (engine: Engine, delta: number) => void;
+  postupdate?: (engine: Engine, delta: number) => void;
 }

@@ -8,6 +8,7 @@ import { Vector } from '../Algebra';
 import { Engine } from '../Engine';
 import * as Util from '../Util/Util';
 import { Configurable } from '../Configurable';
+import { BoundingBox } from '../Collision/Index';
 
 /**
  * @hidden
@@ -32,10 +33,18 @@ export class AnimationImpl implements Drawable {
   private _elapsedTime: number = Date.now();
   private _resolveDonePlaying: (value?: Animation | PromiseLike<Animation>) => void = null;
 
-  public anchor: Vector = Vector.Zero;
+  public anchor: Vector = Vector.Half;
   public offset: Vector = Vector.Zero;
   public rotation: number = 0.0;
   public scale: Vector = Vector.One;
+
+  public get localBounds(): BoundingBox {
+    const sprite = this.sprites[this.currentFrame];
+    if (sprite) {
+      return sprite.localBounds;
+    }
+    return new BoundingBox();
+  }
 
   /**
    * Indicates whether the animation should loop after it is completed

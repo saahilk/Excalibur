@@ -367,7 +367,9 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
     }
 
     for (const s of engine.systems) {
-      s.preupdate(engine, delta);
+      if (s.preupdate) {
+        s.preupdate(engine, delta);
+      }
     }
 
     for (const s of engine.systems) {
@@ -376,7 +378,9 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
     }
 
     for (const s of engine.systems) {
-      s.postupdate(engine, delta);
+      if (s.postupdate) {
+        s.postupdate(engine, delta);
+      }
     }
 
     // Cycle through actors updating actors
@@ -464,13 +468,13 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
       this.tileMaps[i].draw(ctx, delta);
     }
 
-    const sortedChildren = this._sortedDrawingTree.list();
-    for (i = 0, len = sortedChildren.length; i < len; i++) {
-      // only draw actors that are visible and on screen
-      if (sortedChildren[i].visible && !sortedChildren[i].isOffScreen) {
-        sortedChildren[i].draw(ctx, delta);
-      }
-    }
+    // const sortedChildren = this._sortedDrawingTree.list();
+    // for (i = 0, len = sortedChildren.length; i < len; i++) {
+    //   // only draw actors that are visible and on screen
+    //   if (sortedChildren[i].visible && !sortedChildren[i].isOffScreen) {
+    //     sortedChildren[i].draw(ctx, delta);
+    //   }
+    // }
 
     if (this._engine && this._engine.isDebug) {
       ctx.strokeStyle = 'yellow';
@@ -479,12 +483,12 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
 
     ctx.restore();
 
-    for (i = 0, len = this.uiActors.length; i < len; i++) {
-      // only draw ui actors that are visible and on screen
-      if (this.uiActors[i].visible) {
-        this.uiActors[i].draw(ctx, delta);
-      }
-    }
+    // for (i = 0, len = this.uiActors.length; i < len; i++) {
+    //   // only draw ui actors that are visible and on screen
+    //   if (this.uiActors[i].visible) {
+    //     this.uiActors[i].draw(ctx, delta);
+    //   }
+    // }
 
     if (this._engine && this._engine.isDebug) {
       for (i = 0, len = this.uiActors.length; i < len; i++) {
@@ -643,6 +647,7 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
    */
   public addUIActor(actor: Actor) {
     this.uiActors.push(actor);
+    this.entities.insert(actor);
     actor.scene = this;
   }
 

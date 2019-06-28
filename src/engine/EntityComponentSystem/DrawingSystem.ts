@@ -2,43 +2,97 @@ import { System } from './System';
 import { Type, ComponentTypes } from './Types';
 import { Entity } from './Entity';
 import { Engine } from '../Engine';
-import { TransformComponent } from './TransformComponent';
+import { TransformComponent, CoordPlane } from './TransformComponent';
 import { DrawingComponent } from './DrawingComponent';
-import { PreDrawEvent, PostDrawEvent } from '../Events';
+import { PreDrawEvent, PostDrawEvent, ExitViewPortEvent, EnterViewPortEvent } from '../Events';
+import { hasPreDraw, hasPostDraw } from '../Drawing/HasPreDraw';
+import { SortedList } from '../Util/SortedList';
 import { isActor } from '../Actor';
 import { Vector } from '../Algebra';
-import { hasPreDraw, hasPostDraw } from '../Drawing/HasPreDraw';
+import { OffscreenComponent } from './OffscreenComponent';
 
 export class DrawingSystem implements System {
   readonly types: Type[] = [ComponentTypes.Transform, ComponentTypes.Drawing];
+
+  private _sortedDrawingTree: SortedList<Entity> = new SortedList<Entity>((e) => {
+    const transform = e.components[ComponentTypes.Transform] as TransformComponent;
+    return transform.z;
+  });
 
   public ctx: CanvasRenderingContext2D;
   constructor(public engine: Engine) {
     this.ctx = engine.ctx;
   }
 
-  onEntityAdd(_entity: Entity) {
-    // todo draw tree
+  // TODO make this a generic observer notify
+  onEntityAdd(entity: Entity) {
+    this._sortedDrawingTree.add(entity);
+    this._updateZ(entity.components[ComponentTypes.Transform] as TransformComponent);
   }
 
-  onEntityRemove(_entity: Entity) {
-    // o draw tree
+  onEntityRemove(entity: Entity) {
+    this._sortedDrawingTree.removeByComparable(entity);
+  }
+
+  private _updateZ(transform: TransformComponent) {
+    transform.oldZ = transform.z;
   }
 
   /**
    * Update is called with enities that have a transform and drawing component
    */
-  update(entities: Entity[], delta: number): void {
-    // TODO this is a bad idea `.sort` is not stable
-    const sortedEntities = entities.sort((a, b) => {
-      const pos1 = a.components[ComponentTypes.Transform] as TransformComponent;
-      const pos2 = b.components[ComponentTypes.Transform] as TransformComponent;
-      return pos1.z - pos2.z;
-    });
+  update(_entities: Entity[], delta: number): void {
+    // TODO perhaps observe this change?
+    for (const e of _entities) {
+      const transform = e.components[ComponentTypes.Transform] as TransformComponent;
+      const drawing = e.components[ComponentTypes.Drawing] as DrawingComponent;
+
+      // Handle z index
+      if (transform.z !== transform.oldZ) {
+        const tempZ = transform.z;
+        transform.z = transform.oldZ;
+        this._sortedDrawingTree.removeByComparable(e);
+        transform.z = tempZ;
+        this._sortedDrawingTree.add(e);
+        this._updateZ(transform);
+      }
+
+      // Handle offscreen culling
+      const offscreen = !this.engine.currentScene.camera.viewport.intersect(
+        drawing.current.localBounds
+          .scale(transform.scale)
+          .rotate(transform.rotation)
+          .translate(transform.pos)
+      );
+
+      if (!e.components[ComponentTypes.Offscreen] && offscreen) {
+        e.emit('exitviewport', new ExitViewPortEvent(e));
+        e.addComponent(new OffscreenComponent());
+      }
+
+      if (e.components[ComponentTypes.Offscreen] && !offscreen) {
+        e.emit('enterviewport', new EnterViewPortEvent(e));
+        e.removeComponent(ComponentTypes.Offscreen);
+      }
+    }
+
+    const sortedEntities = this._sortedDrawingTree.list();
 
     for (const entity of sortedEntities) {
       const transform = entity.components[ComponentTypes.Transform] as TransformComponent;
       const drawing = entity.components[ComponentTypes.Drawing] as DrawingComponent;
+      if (entity.components[ComponentTypes.Offscreen]) {
+        console.log('offscreen');
+        continue;
+      }
+
+      // Establish camera offset per entity
+      if (transform && transform.coordPlane === CoordPlane.World) {
+        this.ctx.save();
+        if (this.engine && this.engine.currentScene && this.engine.currentScene.camera) {
+          this.engine.currentScene.camera.draw(this.ctx);
+        }
+      }
 
       if (drawing.current) {
         drawing.current.tick(delta);
@@ -60,6 +114,7 @@ export class DrawingSystem implements System {
         }
       }
 
+      // TODO delete replace these this with a utility method
       const preDraw = () => {
         if (hasPreDraw(entity)) {
           this.ctx.save();
@@ -116,6 +171,11 @@ export class DrawingSystem implements System {
 
         this.ctx.restore();
       }
+
+      if (transform && transform.coordPlane === CoordPlane.World) {
+        // Apply camera world offset
+        this.ctx.restore();
+      }
     }
   }
 
@@ -124,17 +184,5 @@ export class DrawingSystem implements System {
     this.ctx.clearRect(0, 0, _engine.canvasWidth, _engine.canvasHeight);
     this.ctx.fillStyle = _engine.backgroundColor.toString();
     this.ctx.fillRect(0, 0, _engine.canvasWidth, _engine.canvasHeight);
-
-    // Todo move this into normal draw to do 'UI' actors
-    // Establish camera offset
-    this.ctx.save();
-    if (this.engine && this.engine.currentScene && this.engine.currentScene.camera) {
-      this.engine.currentScene.camera.draw(this.ctx);
-    }
-  }
-
-  postupdate(_engine: Engine, _delta: number): void {
-    // Apply camera offset
-    this.ctx.restore();
   }
 }

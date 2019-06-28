@@ -7,6 +7,7 @@ import { Vector } from '../Algebra';
 import { Logger } from '../Util/Log';
 import { clamp } from '../Util/Util';
 import { Configurable } from '../Configurable';
+import { BoundingBox } from '../Collision/Index';
 
 /**
  * @hidden
@@ -23,6 +24,21 @@ export class SpriteImpl implements Drawable {
 
   public get drawHeight(): number {
     return this.height * this.scale.y;
+  }
+
+  /**
+   * Local bounds of the drawing, including scale and anchoring
+   */
+  public get localBounds(): BoundingBox {
+    return new BoundingBox({
+      left: -this.drawWidth * this.anchor.x,
+      right: this.drawWidth * this.anchor.x,
+      top: -this.drawHeight * this.anchor.y,
+      bottom: this.drawHeight * this.anchor.y
+    })
+      .scale(this.scale)
+      .rotate(this.rotation)
+      .translate(this.offset);
   }
 
   public rotation: number = 0.0;
@@ -402,4 +418,15 @@ export class Sprite extends Configurable(SpriteImpl) {
   constructor(imageOrConfig: Texture | SpriteArgs, x?: number, y?: number, width?: number, height?: number) {
     super(imageOrConfig, x, y, width, height);
   }
+}
+
+export interface SpriteOptions {
+  anchor?: Vector;
+  offset?: Vector;
+  rotation?: number;
+  scale?: Vector;
+  x?: number;
+  y?: number;
+  flipVertical?: boolean;
+  flipHorizontal?: boolean;
 }

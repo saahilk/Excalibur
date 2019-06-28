@@ -34,6 +34,7 @@ export class EntityRepository implements Observer<RemovedComponent | AddedCompon
     }
 
     this._invalidQueriesForType(component.type);
+    this._addToSystems(entity);
   }
 
   private _removeFromIndexes(entity: Entity, component: Component) {
@@ -49,17 +50,16 @@ export class EntityRepository implements Observer<RemovedComponent | AddedCompon
     }
 
     this._invalidQueriesForType(component.type);
+    this._removeFromSystems(entity, component);
   }
 
   notify(message: RemovedComponent | AddedComponent): void {
     if (isAddedComponent(message)) {
       this._addOrUpdateFromIndexes(message.data.entity, message.data.component);
-      this._addToSystems(message.data.entity);
     }
 
     if (isRemovedComponent(message)) {
       this._removeFromIndexes(message.data.entity, message.data.component);
-      this._removeFromSystems(message.data.entity, message.data.component);
     }
   }
 
@@ -78,7 +78,9 @@ export class EntityRepository implements Observer<RemovedComponent | AddedCompon
   addSystem(system: System): void {
     const entities = this.queryByTypes(system.types);
     for (const e of entities) {
-      system.onEntityAdd(e);
+      if (system.onEntityAdd) {
+        system.onEntityAdd(e);
+      }
     }
     this.systems.push(system);
   }
@@ -87,6 +89,10 @@ export class EntityRepository implements Observer<RemovedComponent | AddedCompon
     for (const s of this.systems) {
       let matches = true;
       for (const systemType of s.types) {
+        if (s.types.indexOf(component.type) === -1) {
+          matches = false;
+          break;
+        }
         matches = matches && [...entity.types, component.type].indexOf(systemType) > -1;
       }
       if (matches) {
@@ -98,7 +104,9 @@ export class EntityRepository implements Observer<RemovedComponent | AddedCompon
   removeSystem(system: System): void {
     const entities = this.queryByTypes(system.types);
     for (const e of entities) {
-      system.onEntityRemove(e);
+      if (system.onEntityRemove) {
+        system.onEntityRemove(e);
+      }
     }
     Util.removeItemFromArray(system, this.systems);
   }
@@ -141,7 +149,9 @@ export class EntityRepository implements Observer<RemovedComponent | AddedCompon
     // 1. This grabs all the entities for each type in 1 big list
     let results: Entity[] = [];
     for (const type of types) {
-      results = results.concat(this.typeIndex[type]);
+      if (this.typeIndex[type]) {
+        results = results.concat(this.typeIndex[type]);
+      }
     }
     // 2. This does a distinct on the entities that match the overall [type] query
     // 3. Cache the results of the query

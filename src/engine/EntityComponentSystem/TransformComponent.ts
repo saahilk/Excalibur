@@ -14,16 +14,24 @@ export class TransformComponent implements Component {
 
   // Todo implement UI actors
   public coordPlane = CoordPlane.World;
+
   public pos: Vector = Vector.Zero;
-  // Z-index
-  public z: number = 0;
   public vel: Vector = Vector.Zero;
   public acc: Vector = Vector.Zero;
 
+  // Z-index
+  public z: number = 0;
+  public oldZ: number = -1;
+
   public rotation: number = 0;
   public angularVelocity: number = 0;
+  public torque: number = 0;
+
+  public scale: Vector = Vector.One;
 
   public clone() {
+    // TODO clone should copy current values
+
     return new TransformComponent();
   }
 }

@@ -8,6 +8,7 @@ export type Type = string | ComponentTypes;
 export enum ComponentTypes {
   Transform = 'Transform',
   Drawing = 'Drawing',
+  Offscreen = 'Offscreen',
   Body = 'Body',
   Input = 'Input',
   Events = 'Events',

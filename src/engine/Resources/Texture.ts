@@ -1,6 +1,6 @@
 import { Resource } from './Resource';
 import { Promise } from '../Promises';
-import { Sprite } from '../Drawing/Sprite';
+import { Sprite, SpriteOptions } from '../Drawing/Sprite';
 /**
  * The [[Texture]] object allows games built in Excalibur to load image resources.
  * [[Texture]] is an [[ILoadable]] which means it can be passed to a [[Loader]]
@@ -86,7 +86,15 @@ export class Texture extends Resource<HTMLImageElement> {
     return complete;
   }
 
-  public asSprite(): Sprite {
-    return this._sprite;
+  public asSprite(options?: SpriteOptions): Sprite {
+    const sprite = this._sprite.clone();
+    if (options) {
+      for (const prop in options) {
+        if ((<any>options)[prop]) {
+          (<any>sprite)[prop] = (<any>options)[prop];
+        }
+      }
+    }
+    return sprite;
   }
 }

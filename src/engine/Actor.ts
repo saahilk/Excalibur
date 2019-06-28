@@ -397,7 +397,9 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
   /**
    * Indicates whether the actor is physically in the viewport
    */
-  public isOffScreen: boolean = false;
+  public get isOffScreen(): boolean {
+    return !!this.components[ComponentTypes.Offscreen];
+  }
 
   /**
    * The visibility of an actor drawing
@@ -596,7 +598,7 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
 
     // Build default pipeline
     this.traits.push(new Traits.TileMapCollisionDetection());
-    this.traits.push(new Traits.OffscreenCulling());
+    // this.traits.push(new Traits.OffscreenCulling());
     this.traits.push(new Traits.CapturePointer());
 
     // Build the action queue
@@ -968,6 +970,7 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
    * move with it.
    * @param actor The child actor to add
    */
+  @obsolete()
   public add(actor: Actor) {
     actor.body.collider.type = CollisionType.PreventCollision;
     if (Util.addItemToArray(actor, this.children)) {
@@ -978,10 +981,16 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
    * Removes a child actor from this actor.
    * @param actor The child actor to remove
    */
+  @obsolete()
   public remove(actor: Actor) {
     if (Util.removeItemFromArray(actor, this.children)) {
       actor.parent = null;
     }
+  }
+
+  public get transform(): TransformComponent {
+    const transform = this.components[ComponentTypes.Transform] as TransformComponent;
+    return transform;
   }
 
   public get drawing(): DrawingComponent {
