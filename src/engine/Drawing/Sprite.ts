@@ -32,11 +32,10 @@ export class SpriteImpl implements Drawable {
   public get localBounds(): BoundingBox {
     return new BoundingBox({
       left: -this.drawWidth * this.anchor.x,
-      right: this.drawWidth * this.anchor.x,
+      right: this.drawWidth * (1 - this.anchor.x),
       top: -this.drawHeight * this.anchor.y,
-      bottom: this.drawHeight * this.anchor.y
+      bottom: this.drawHeight * (1 - this.anchor.y)
     })
-      .scale(this.scale)
       .rotate(this.rotation)
       .translate(this.offset);
   }

@@ -4,7 +4,7 @@ import { Actor, ActorArgs } from './Actor';
 import * as Traits from './Traits/Index';
 import { CollisionType } from './Collision/CollisionType';
 import { Shape } from './Collision/Shape';
-import { ComponentTypes } from './EntityComponentSystem/Types';
+import { BuiltinComponentType } from './EntityComponentSystem/Types';
 import { TransformComponent, CoordPlane } from './EntityComponentSystem/TransformComponent';
 import { obsolete } from './Util/Decorators';
 
@@ -37,7 +37,7 @@ export class UIActor extends Actor {
     this.body.collider.type = CollisionType.PreventCollision;
     this.body.collider.shape = Shape.Box(this.width, this.height, this.anchor);
     this.enableCapturePointer = true;
-    const transform = this.components[ComponentTypes.Transform] as TransformComponent;
+    const transform = this.components[BuiltinComponentType.Transform] as TransformComponent;
     transform.coordPlane = CoordPlane.Screen;
   }
 

@@ -7,7 +7,9 @@ export interface Observer<T> {
   notify(message: T): void;
 }
 
-export class Observerable<T> {
+export type MaybeObserver<T> = Partial<Observer<T>>;
+
+export class Observable<T> {
   public observers: Observer<T>[] = [];
 
   register(observer: Observer<T>) {

@@ -1,8 +1,8 @@
 import { Component } from './Component';
 
-import { Observerable, Message } from '../Util/Observable';
+import { Observable, Message } from '../Util/Observable';
 import { Class } from '../Class';
-import { Type } from './Types';
+import { ComponentType } from './Types';
 
 export interface EntityComponent {
   component: Component;
@@ -39,7 +39,7 @@ export class Entity extends Class {
   /**
    * The types of the components on the Entity
    */
-  public get types(): Type[] {
+  public get types(): ComponentType[] {
     return Object.keys(this.components);
   }
 
@@ -68,10 +68,10 @@ export class Entity extends Class {
       return false;
     }
   };
-  // not IE11 compatible...we can hack around this by triggering handle changes if
+  // not IE11 compatible...we can hack around this by triggering handle changes if needed
   // TODO maybe this should be read only to avoid using proxy...
   public components: ComponentMap = new Proxy({}, this._handleChanges);
-  public changes: Observerable<AddedComponent | RemovedComponent> = new Observerable<AddedComponent | RemovedComponent>();
+  public changes: Observable<AddedComponent | RemovedComponent> = new Observable<AddedComponent | RemovedComponent>();
 
   /**
    * Creates a deep copy of the entity and a copy of all its components
@@ -111,7 +111,7 @@ export class Entity extends Class {
     }
   }
 
-  public hasComponent(type: string): boolean {
+  public has(type: ComponentType): boolean {
     return !!this.components[type];
   }
 }

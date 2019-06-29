@@ -10,7 +10,7 @@ import { Shape } from './Shape';
 import { Entity } from '../EntityComponentSystem/Entity';
 import { TransformComponent } from '../EntityComponentSystem/TransformComponent';
 import { Component } from '../EntityComponentSystem/Component';
-import { Type, ComponentTypes } from '../EntityComponentSystem/Types';
+import { ComponentType, BuiltinComponentType } from '../EntityComponentSystem/Types';
 
 export interface BodyOptions {
   /**
@@ -36,7 +36,7 @@ export interface BodyOptions {
  * Body describes all the physical properties pos, vel, acc, rotation, angular velocity
  */
 export class Body implements Component, Clonable<Body> {
-  public readonly type: Type = ComponentTypes.Body;
+  public readonly type: ComponentType = BuiltinComponentType.Body;
   public owner: Entity;
 
   private _collider: Collider;

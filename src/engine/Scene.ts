@@ -267,6 +267,7 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
    */
   public _activate(oldScene: Scene, newScene: Scene): void {
     this._logger.debug('Scene.onActivate', this);
+    // TODO add a overridable method so that scenes can dictate their systems
     for (const s of this._engine.systems) {
       this.entities.addSystem(s);
     }
@@ -280,7 +281,7 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
    * @internal
    */
   public _deactivate(oldScene: Scene, newScene: Scene): void {
-    this._logger.debug('Scene.onDectivate', this);
+    this._logger.debug('Scene.onDeactivate', this);
     for (const s of this._engine.systems) {
       this.entities.removeSystem(s);
     }
@@ -357,9 +358,9 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
     }
 
     // Cycle through actors updating UI actors
-    for (i = 0, len = this.uiActors.length; i < len; i++) {
-      this.uiActors[i].update(engine, delta);
-    }
+    // for (i = 0, len = this.uiActors.length; i < len; i++) {
+    //   this.uiActors[i].update(engine, delta);
+    // }
 
     // Cycle through actors updating tile maps
     for (i = 0, len = this.tileMaps.length; i < len; i++) {
@@ -563,7 +564,7 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
   public add(uiActor: UIActor): void;
   public add(entity: any): void {
     if (entity instanceof Entity) {
-      this.entities.insert(entity);
+      this.entities.addEntity(entity);
     }
 
     if (entity instanceof Actor) {
@@ -620,7 +621,7 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
   public remove(uiActor: UIActor): void;
   public remove(entity: any): void {
     if (entity instanceof Entity) {
-      this.entities.remove(entity.id);
+      this.entities.removeEntity(entity.id);
     }
 
     if (entity instanceof UIActor) {
@@ -647,7 +648,7 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
    */
   public addUIActor(actor: Actor) {
     this.uiActors.push(actor);
-    this.entities.insert(actor);
+    this.entities.addEntity(actor);
     actor.scene = this;
   }
 

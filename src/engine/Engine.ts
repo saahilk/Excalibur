@@ -42,6 +42,7 @@ import { BoundingBox } from './Collision/BoundingBox';
 import { BrowserEvents } from './Util/Browser';
 import { System } from './EntityComponentSystem/System';
 import { DrawingSystem } from './EntityComponentSystem/DrawingSystem';
+import { DebugDrawSystem } from './EntityComponentSystem/DebugDrawSystem';
 
 /**
  * Enum representing the different display modes available to Excalibur
@@ -212,7 +213,7 @@ export class Engine extends Class implements CanInitialize, CanUpdate, CanDraw {
   public systems: System[];
 
   public buildDefaultSystems(engine: Engine): System[] {
-    return [new DrawingSystem(engine)];
+    return [new DrawingSystem(engine), new DebugDrawSystem(engine)];
   }
 
   /**

@@ -311,8 +311,8 @@ export class PostDrawEvent extends GameEvent<Entity | Scene | Engine | TileMap> 
 /**
  * The 'predebugdraw' event is emitted on actors, scenes, and engine before debug drawing starts.
  */
-export class PreDebugDrawEvent extends GameEvent<Actor | Scene | Engine> {
-  constructor(public ctx: CanvasRenderingContext2D, public target: Actor | Scene | Engine) {
+export class PreDebugDrawEvent extends GameEvent<Entity | Actor | Scene | Engine> {
+  constructor(public ctx: CanvasRenderingContext2D, public target: Entity | Actor | Scene | Engine) {
     super();
   }
 }
@@ -320,8 +320,8 @@ export class PreDebugDrawEvent extends GameEvent<Actor | Scene | Engine> {
 /**
  * The 'postdebugdraw' event is emitted on actors, scenes, and engine after debug drawing starts.
  */
-export class PostDebugDrawEvent extends GameEvent<Actor | Scene | Engine> {
-  constructor(public ctx: CanvasRenderingContext2D, public target: Actor | Scene | Engine) {
+export class PostDebugDrawEvent extends GameEvent<Entity | Actor | Scene | Engine> {
+  constructor(public ctx: CanvasRenderingContext2D, public target: Entity | Actor | Scene | Engine) {
     super();
   }
 }

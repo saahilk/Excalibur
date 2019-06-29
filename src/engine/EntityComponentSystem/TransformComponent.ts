@@ -1,5 +1,5 @@
 import { Component } from './component';
-import { ComponentTypes } from './Types';
+import { BuiltinComponentType } from './Types';
 import { Vector } from '../Algebra';
 import { Entity } from './Entity';
 
@@ -9,10 +9,9 @@ export enum CoordPlane {
 }
 
 export class TransformComponent implements Component {
-  public readonly type = ComponentTypes.Transform;
+  public readonly type = BuiltinComponentType.Transform;
   public owner: Entity = null;
 
-  // Todo implement UI actors
   public coordPlane = CoordPlane.World;
 
   public pos: Vector = Vector.Zero;
@@ -31,7 +30,7 @@ export class TransformComponent implements Component {
 
   public clone() {
     // TODO clone should copy current values
-
+    // TODO utility for cloning, maybe a .props that has cloning utilities
     return new TransformComponent();
   }
 }

@@ -1,6 +1,6 @@
 import { Vector } from '../Algebra';
 import { Component } from './component';
-import { ComponentTypes } from './Types';
+import { BuiltinComponentType } from './Types';
 import { Entity } from './Entity';
 import { Drawable } from '../Drawing/Drawable';
 import { HasPreDraw, HasPostDraw } from '../Drawing/HasPreDraw';
@@ -9,7 +9,7 @@ export interface HasTick {
   tick(delta: number): void;
 }
 
-export interface CanDraw {
+export interface CanCanvasDraw {
   draw(ctx: CanvasRenderingContext2D, x: number, y: number): void;
 }
 
@@ -17,7 +17,7 @@ export interface Loaded {
   loaded: boolean;
 }
 
-export type Graphic = HasTick & CanDraw & Loaded;
+export type Graphic = HasTick & CanCanvasDraw & Loaded;
 
 export interface DrawingOptions {
   /**
@@ -69,7 +69,7 @@ export interface DrawingOptions {
  * Component to manage drawings, using with the position component
  */
 export class DrawingComponent implements Component, HasPreDraw, HasPostDraw {
-  public readonly type = ComponentTypes.Drawing;
+  public readonly type = BuiltinComponentType.Drawing;
   public owner: Entity = null;
 
   private _currentDrawing: Drawable;
@@ -186,7 +186,7 @@ export class DrawingComponent implements Component, HasPreDraw, HasPostDraw {
    * Returns the current drawings height in pixels, as it would appear on screen factoring height.
    * If there isn't a current drawing returns [[DrawingComponent.noDrawingHeight]].
    */
-  public get height(): Number {
+  public get height(): number {
     if (this._currentDrawing) {
       return this._currentDrawing.drawHeight;
     }

@@ -1,23 +1,16 @@
-import { Type } from './Types';
+import { ComponentType } from './Types';
 import { Entity } from './Entity';
 import { Engine } from '../Engine';
+import { Message, MaybeObserver } from '../Util/Observable';
 
-export interface System {
+/**
+ * An Excalibur [[System]] that updates entities of certain types.
+ */
+export interface System extends MaybeObserver<AddedSystemEntity | RemovedSystemEntity> {
   /**
    * The types of entities that this system operates on
    */
-  readonly types: Type[];
-
-  /**
-   * When an entity is added that matches this system's types this method is called
-   * @param entity
-   */
-  onEntityAdd?: (entity: Entity) => void;
-  /**
-   * When an entity no longer matches this system's types this method is called
-   * @param entity
-   */
-  onEntityRemove?: (entity: Entity) => void;
+  readonly types: ComponentType[];
 
   /**
    * Update all entities that match this system's types
@@ -26,6 +19,41 @@ export interface System {
    */
   update(entities: Entity[], delta: number): void;
 
+  /**
+   * Optionally run a preupdate before the system processes matching entities
+   * @param engine
+   * @param delta Time in milliseconds since the last frame
+   */
   preupdate?: (engine: Engine, delta: number) => void;
+
+  /**
+   * Optionally run a postupdate after the system processes matching entities
+   * @param engine
+   * @param delta Time in milliseconds since the last frame
+   */
   postupdate?: (engine: Engine, delta: number) => void;
+}
+
+/**
+ * An [[Entity]] with [[Component]] types that matches a [[System]] types exists in the current scene.
+ */
+export class AddedSystemEntity implements Message<Entity> {
+  readonly type: 'Entity Added' = 'Entity Added';
+  constructor(public data: Entity) {}
+}
+
+export function isAddedSystemEntity(x: Message<Entity>): x is AddedSystemEntity {
+  return !!x && x.type === 'Entity Added';
+}
+
+/**
+ * An [[Entity]] with [[Component]] types that no longer matches a [[System]] types exists in the current scene.
+ */
+export class RemovedSystemEntity implements Message<Entity> {
+  readonly type: 'Entity Removed' = 'Entity Removed';
+  constructor(public data: Entity) {}
+}
+
+export function isRemoveSystemEntity(x: Message<Entity>): x is RemovedSystemEntity {
+  return !!x && x.type === 'Entity Removed';
 }

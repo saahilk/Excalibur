@@ -1,14 +1,14 @@
 import { System } from './System';
-import { ComponentTypes, Type } from './Types';
+import { BuiltinComponentType, ComponentType } from './Types';
 import { Entity } from './Entity';
 import { TransformComponent } from './TransformComponent';
 
 export class MotionSystem implements System {
-  readonly types: Type[] = [ComponentTypes.Transform];
+  readonly types: ComponentType[] = [BuiltinComponentType.Transform];
 
   update(entities: Entity[], delta: number): void {
     for (const entity of entities) {
-      const transform = entity.components[ComponentTypes.Transform] as TransformComponent;
+      const transform = entity.components[BuiltinComponentType.Transform] as TransformComponent;
 
       // Update placements based on linear algebra
       const seconds = delta / 1000;

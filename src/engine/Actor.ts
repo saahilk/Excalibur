@@ -51,7 +51,8 @@ import { Shape } from './Collision/Shape';
 import { Entity } from './EntityComponentSystem/Entity';
 import { TransformComponent } from './EntityComponentSystem/TransformComponent';
 import { DrawingComponent } from './EntityComponentSystem/DrawingComponent';
-import { ComponentTypes } from './EntityComponentSystem/Types';
+import { BuiltinComponentType } from './EntityComponentSystem/Types';
+import { DebugComponent } from './EntityComponentSystem';
 
 export function isActor(x: any): x is Actor {
   return x instanceof Actor;
@@ -371,7 +372,7 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
    * `Actor.anchor.setTo(0, 0)` and top-right would be `Actor.anchor.setTo(0, 1)`.
    */
   public get anchor() {
-    const drawing = this.components[ComponentTypes.Drawing] as DrawingComponent;
+    const drawing = this.components[BuiltinComponentType.Drawing] as DrawingComponent;
     if (drawing && drawing.current) {
       return drawing.current.anchor;
     }
@@ -383,7 +384,7 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
   }
 
   public set anchor(anchor: Vector) {
-    const drawing = this.components[ComponentTypes.Drawing] as DrawingComponent;
+    const drawing = this.components[BuiltinComponentType.Drawing] as DrawingComponent;
     if (drawing && drawing.current) {
       drawing.current.anchor = anchor;
     }
@@ -398,14 +399,14 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
    * Indicates whether the actor is physically in the viewport
    */
   public get isOffScreen(): boolean {
-    return !!this.components[ComponentTypes.Offscreen];
+    return !!this.components[BuiltinComponentType.Offscreen];
   }
 
   /**
    * The visibility of an actor drawing
    */
   public get visible(): boolean {
-    const drawing = this.components[ComponentTypes.Drawing] as DrawingComponent;
+    const drawing = this.components[BuiltinComponentType.Drawing] as DrawingComponent;
     if (drawing) {
       return drawing.visible;
     }
@@ -416,7 +417,7 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
    * The visibility of an actor drawing
    */
   public set visible(visible: boolean) {
-    const drawing = this.components[ComponentTypes.Drawing] as DrawingComponent;
+    const drawing = this.components[BuiltinComponentType.Drawing] as DrawingComponent;
     if (drawing) {
       drawing.visible = visible;
     }
@@ -563,7 +564,7 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
       if (config.body) {
         shouldInitializeBody = false;
         this.body = config.body;
-        this.body.transform = this.components[ComponentTypes.Transform] as TransformComponent;
+        this.body.transform = this.components[BuiltinComponentType.Transform] as TransformComponent;
       }
 
       if (config.anchor) {
@@ -578,7 +579,7 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
     // Initialize default collider to be a box
     if (shouldInitializeBody) {
       this.body = new Body({
-        transform: this.components[ComponentTypes.Transform] as TransformComponent,
+        transform: this.components[BuiltinComponentType.Transform] as TransformComponent,
         collider: new Collider({
           type: CollisionType.Passive,
           shape: Shape.Box(this.width, this.height, this.anchor)
@@ -989,14 +990,22 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
   }
 
   public get transform(): TransformComponent {
-    const transform = this.components[ComponentTypes.Transform] as TransformComponent;
+    const transform = this.components[BuiltinComponentType.Transform] as TransformComponent;
     return transform;
   }
 
   public get drawing(): DrawingComponent {
-    const drawing = this.components[ComponentTypes.Drawing] as DrawingComponent;
+    const drawing = this.components[BuiltinComponentType.Drawing] as DrawingComponent;
     if (drawing) {
       return drawing;
+    }
+    return null;
+  }
+
+  public get debug(): DebugComponent {
+    const debug = this.components[BuiltinComponentType.Debug] as DebugComponent;
+    if (debug) {
+      return debug;
     }
     return null;
   }
@@ -1015,7 +1024,7 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
   public setDrawing(key: number): void;
   @obsolete()
   public setDrawing(key: any): void {
-    const drawing = this.components[ComponentTypes.Drawing] as DrawingComponent;
+    const drawing = this.components[BuiltinComponentType.Drawing] as DrawingComponent;
     if (drawing) {
       drawing.show(key);
     }
@@ -1037,7 +1046,7 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
   public addDrawing(key: any, drawing: Drawable): void;
   @obsolete()
   public addDrawing(): void {
-    const drawing = this.components[ComponentTypes.Drawing] as DrawingComponent;
+    const drawing = this.components[BuiltinComponentType.Drawing] as DrawingComponent;
     if (drawing) {
       if (arguments.length === 2) {
         drawing.add(<string>arguments[0], arguments[1]);
@@ -1055,7 +1064,7 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
   }
 
   public get z(): number {
-    const transform = this.components[ComponentTypes.Transform] as TransformComponent;
+    const transform = this.components[BuiltinComponentType.Transform] as TransformComponent;
     if (transform) {
       return transform.z;
     }
@@ -1063,7 +1072,7 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
   }
 
   public set z(newZ: number) {
-    const transform = this.components[ComponentTypes.Transform] as TransformComponent;
+    const transform = this.components[BuiltinComponentType.Transform] as TransformComponent;
     if (transform) {
       transform.z = newZ;
     }
@@ -1136,7 +1145,7 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
   }
 
   public get width() {
-    const drawing = this.components[ComponentTypes.Drawing] as DrawingComponent;
+    const drawing = this.components[BuiltinComponentType.Drawing] as DrawingComponent;
     if (drawing) {
       return drawing.noDrawingWidth;
     }
@@ -1145,7 +1154,7 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
   }
 
   public set width(width: number) {
-    const drawing = this.components[ComponentTypes.Drawing] as DrawingComponent;
+    const drawing = this.components[BuiltinComponentType.Drawing] as DrawingComponent;
     if (drawing) {
       drawing.noDrawingWidth = width;
     }
@@ -1158,7 +1167,7 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
   }
 
   public get height() {
-    const drawing = this.components[ComponentTypes.Drawing] as DrawingComponent;
+    const drawing = this.components[BuiltinComponentType.Drawing] as DrawingComponent;
     if (drawing) {
       return drawing.noDrawingHeight;
     }
@@ -1167,7 +1176,7 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
   }
 
   public set height(height: number) {
-    const drawing = this.components[ComponentTypes.Drawing] as DrawingComponent;
+    const drawing = this.components[BuiltinComponentType.Drawing] as DrawingComponent;
     if (drawing) {
       drawing.noDrawingHeight = height;
     }
@@ -1622,66 +1631,56 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
    * @param ctx The rendering context
    */
   /* istanbul ignore next */
-  public debugDraw(ctx: CanvasRenderingContext2D) {
-    this.emit('predebugdraw', new PreDebugDrawEvent(ctx, this));
-
-    this.body.collider.debugDraw(ctx);
-
-    // Draw actor bounding box
-    const bb = this.body.collider.localBounds.translate(this.getWorldPos());
-    bb.debugDraw(ctx);
-
-    // Draw actor Id
-    ctx.fillText('id: ' + this.id, bb.left + 3, bb.top + 10);
-
-    // Draw actor anchor Vector
-    ctx.fillStyle = Color.Yellow.toString();
-    ctx.beginPath();
-    ctx.arc(this.getWorldPos().x, this.getWorldPos().y, 3, 0, Math.PI * 2);
-    ctx.closePath();
-    ctx.fill();
-
-    // Culling Box debug draw
-    for (let j = 0; j < this.traits.length; j++) {
-      if (this.traits[j] instanceof Traits.OffscreenCulling) {
-        (<Traits.OffscreenCulling>this.traits[j]).cullingBox.debugDraw(ctx);
-      }
-    }
-
-    // Unit Circle debug draw
-    ctx.strokeStyle = Color.Yellow.toString();
-    ctx.beginPath();
-    const radius = Math.min(this.width, this.height);
-    ctx.arc(this.getWorldPos().x, this.getWorldPos().y, radius, 0, Math.PI * 2);
-    ctx.closePath();
-    ctx.stroke();
-    const ticks: { [key: string]: number } = {
-      '0 Pi': 0,
-      'Pi/2': Math.PI / 2,
-      Pi: Math.PI,
-      '3/2 Pi': (3 * Math.PI) / 2
-    };
-
-    const oldFont = ctx.font;
-    for (const tick in ticks) {
-      ctx.fillStyle = Color.Yellow.toString();
-      ctx.font = '14px';
-      ctx.textAlign = 'center';
-      ctx.fillText(
-        tick,
-        this.getWorldPos().x + Math.cos(ticks[tick]) * (radius + 10),
-        this.getWorldPos().y + Math.sin(ticks[tick]) * (radius + 10)
-      );
-    }
-
-    ctx.font = oldFont;
-
-    // Draw child actors
-    for (let i = 0; i < this.children.length; i++) {
-      this.children[i].debugDraw(ctx);
-    }
-
-    this.emit('postdebugdraw', new PostDebugDrawEvent(ctx, this));
+  public debugDraw(_ctx: CanvasRenderingContext2D) {
+    // this.emit('predebugdraw', new PreDebugDrawEvent(ctx, this));
+    // this.body.collider.debugDraw(ctx);
+    // // Draw actor bounding box
+    // const bb = this.body.collider.localBounds.translate(this.getWorldPos());
+    // bb.debugDraw(ctx);
+    // // Draw actor Id
+    // ctx.fillText('id: ' + this.id, bb.left + 3, bb.top + 10);
+    // // Draw actor anchor Vector
+    // ctx.fillStyle = Color.Yellow.toString();
+    // ctx.beginPath();
+    // ctx.arc(this.getWorldPos().x, this.getWorldPos().y, 3, 0, Math.PI * 2);
+    // ctx.closePath();
+    // ctx.fill();
+    // // Culling Box debug draw
+    // for (let j = 0; j < this.traits.length; j++) {
+    //   if (this.traits[j] instanceof Traits.OffscreenCulling) {
+    //     (<Traits.OffscreenCulling>this.traits[j]).cullingBox.debugDraw(ctx);
+    //   }
+    // }
+    // // Unit Circle debug draw
+    // ctx.strokeStyle = Color.Yellow.toString();
+    // ctx.beginPath();
+    // const radius = Math.min(this.width, this.height);
+    // ctx.arc(this.getWorldPos().x, this.getWorldPos().y, radius, 0, Math.PI * 2);
+    // ctx.closePath();
+    // ctx.stroke();
+    // const ticks: { [key: string]: number } = {
+    //   '0 Pi': 0,
+    //   'Pi/2': Math.PI / 2,
+    //   Pi: Math.PI,
+    //   '3/2 Pi': (3 * Math.PI) / 2
+    // };
+    // const oldFont = ctx.font;
+    // for (const tick in ticks) {
+    //   ctx.fillStyle = Color.Yellow.toString();
+    //   ctx.font = '14px';
+    //   ctx.textAlign = 'center';
+    //   ctx.fillText(
+    //     tick,
+    //     this.getWorldPos().x + Math.cos(ticks[tick]) * (radius + 10),
+    //     this.getWorldPos().y + Math.sin(ticks[tick]) * (radius + 10)
+    //   );
+    // }
+    // ctx.font = oldFont;
+    // // Draw child actors
+    // for (let i = 0; i < this.children.length; i++) {
+    //   this.children[i].debugDraw(ctx);
+    // }
+    // this.emit('postdebugdraw', new PostDebugDrawEvent(ctx, this));
   }
 
   /**

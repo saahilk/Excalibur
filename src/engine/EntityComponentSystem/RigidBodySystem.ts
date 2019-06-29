@@ -1,9 +1,9 @@
 import { System } from './System';
 import { Entity } from './Entity';
-import { Type, ComponentTypes } from './Types';
+import { ComponentType, BuiltinComponentType } from './Types';
 
 export class RigidBodySystem implements System {
-  public readonly types: Type[] = [ComponentTypes.Body];
+  public readonly types: ComponentType[] = [BuiltinComponentType.Body];
   update(_entities: Entity[], _delta: number): void {
     // pass
   }
