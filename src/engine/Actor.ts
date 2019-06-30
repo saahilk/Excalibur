@@ -51,7 +51,7 @@ import { Shape } from './Collision/Shape';
 import { Entity } from './EntityComponentSystem/Entity';
 import { TransformComponent } from './EntityComponentSystem/TransformComponent';
 import { DrawingComponent } from './EntityComponentSystem/DrawingComponent';
-import { BuiltinComponentType } from './EntityComponentSystem/Types';
+import { BuiltinComponentType } from './EntityComponentSystem/ComponentTypes';
 import { DebugComponent } from './EntityComponentSystem';
 
 export function isActor(x: any): x is Actor {
@@ -64,14 +64,15 @@ export function isActor(x: any): x is Actor {
 export interface ActorArgs extends Partial<ActorImpl> {
   width?: number;
   height?: number;
+
   pos?: Vector;
   vel?: Vector;
   acc?: Vector;
   rotation?: number;
-  rx?: number;
+  angularVelocity?: number;
   z?: number;
-  color?: Color;
   visible?: boolean;
+
   body?: Body;
 }
 
@@ -87,7 +88,7 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
   // #region Properties
 
   /**
-   * Indicates the next id to be set
+   * Indicates the default anchor
    */
   public static defaults: ActorDefaults = {
     anchor: Vector.Half
@@ -98,15 +99,12 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
    * acceleration, mass, inertia, etc.
    */
   public get body(): Body {
-    return this._body;
+    return this.components[BuiltinComponentType.Body] as Body;
   }
 
   public set body(body: Body) {
-    this._body = body;
-    this._body.entity = this;
+    this.addComponent(body);
   }
-
-  private _body: Body;
 
   /**
    * Gets the collision geometry shape to use for collision possible options are [Circle|circles], [ConvexPolygon|polygons], and
@@ -508,6 +506,7 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
    *
    * The default is `null` which prevents a rectangle from being drawn.
    */
+  @obsolete()
   public get color(): Color {
     return this._color;
   }
@@ -570,19 +569,18 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
       if (config.anchor) {
         this.anchor = config.anchor;
       }
+    } else {
+      this.logger.warn(
+        'new ex.Actor(x, y, width, height, color) constructor will be removed in v0.25.0,' + 'please use new ex.Actor(options: ActorArgs)'
+      );
     }
-
-    // Body and collider bounds are still determined by actor width/height
-    this.width = width || 0;
-    this.height = height || 0;
 
     // Initialize default collider to be a box
     if (shouldInitializeBody) {
       this.body = new Body({
-        transform: this.components[BuiltinComponentType.Transform] as TransformComponent,
         collider: new Collider({
           type: CollisionType.Passive,
-          shape: Shape.Box(this.width, this.height, this.anchor)
+          shape: Shape.Box(width, height, this.anchor)
         })
       });
     }
@@ -1144,48 +1142,23 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
     return new Vector(this.pos.x + this.width / 2 - this.anchor.x * this.width, this.pos.y + this.height / 2 - this.anchor.y * this.height);
   }
 
+  /**
+   * Get the width of the Actor's Collider
+   */
   public get width() {
-    const drawing = this.components[BuiltinComponentType.Drawing] as DrawingComponent;
-    if (drawing) {
-      return drawing.noDrawingWidth;
+    const body = this.components[BuiltinComponentType.Body] as Body;
+    if (body && body.collider) {
+      return body.collider.localBounds.width;
     }
     return 0;
-    // return this._width * this.getGlobalScale().x;
-  }
-
-  public set width(width: number) {
-    const drawing = this.components[BuiltinComponentType.Drawing] as DrawingComponent;
-    if (drawing) {
-      drawing.noDrawingWidth = width;
-    }
-
-    // TODO should we event mess with collider shape here? this could be wrong
-    if (this.body && this.body.collider) {
-      this.body.collider.shape = Shape.Box(this.width, this.height, this.anchor);
-      this.body.markCollisionShapeDirty();
-    }
   }
 
   public get height() {
-    const drawing = this.components[BuiltinComponentType.Drawing] as DrawingComponent;
-    if (drawing) {
-      return drawing.noDrawingHeight;
+    const body = this.components[BuiltinComponentType.Body] as Body;
+    if (body && body.collider) {
+      return body.collider.localBounds.height;
     }
     return 0;
-    // return this._height * this.getGlobalScale().y;
-  }
-
-  public set height(height: number) {
-    const drawing = this.components[BuiltinComponentType.Drawing] as DrawingComponent;
-    if (drawing) {
-      drawing.noDrawingHeight = height;
-    }
-
-    // TODO should we event mess with collider shape here? this could be wrong
-    if (this.body && this.body.collider) {
-      this.body.collider.shape = Shape.Box(this.width, this.height, this.anchor);
-      this.body.markCollisionShapeDirty();
-    }
   }
 
   /**
@@ -1716,6 +1689,9 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
 export class Actor extends Configurable(ActorImpl) {
   constructor();
   constructor(config?: ActorArgs);
+  /**
+   * @deprecated This constructor will be removed as part of v0.25.0
+   */
   constructor(x?: number, y?: number, width?: number, height?: number, color?: Color);
   constructor(xOrConfig?: number | ActorArgs, y?: number, width?: number, height?: number, color?: Color) {
     super(xOrConfig, y, width, height, color);

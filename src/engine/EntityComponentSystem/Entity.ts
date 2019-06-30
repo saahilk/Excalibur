@@ -2,7 +2,7 @@ import { Component } from './Component';
 
 import { Observable, Message } from '../Util/Observable';
 import { Class } from '../Class';
-import { ComponentType } from './Types';
+import { ComponentType } from './ComponentTypes';
 
 export interface EntityComponent {
   component: Component;
@@ -94,6 +94,9 @@ export class Entity extends Class {
     } else {
       component.owner = this;
       this.components[component.type] = component;
+      if (component.onAdd) {
+        component.onAdd(this);
+      }
     }
   }
 
@@ -101,11 +104,17 @@ export class Entity extends Class {
     if (typeof componentOrType === 'string') {
       if (this.components[componentOrType]) {
         this.components[componentOrType].owner = null;
+        if (this.components[componentOrType].onRemove) {
+          this.components[componentOrType].onRemove(this);
+        }
         delete this.components[componentOrType];
       }
     } else {
       if (this.components[componentOrType.type]) {
         this.components[componentOrType.type].owner = null;
+        if (this.components[componentOrType.type].onRemove) {
+          this.components[componentOrType.type].onRemove(this);
+        }
         delete this.components[componentOrType.type];
       }
     }

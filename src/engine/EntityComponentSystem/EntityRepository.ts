@@ -1,7 +1,7 @@
 import { Entity, RemovedComponent, AddedComponent, isAddedComponent, isRemovedComponent } from './Entity';
 import { Component } from './Component';
 import { Observer } from '../Util/Observable';
-import { ComponentType } from './Types';
+import { ComponentType } from './ComponentTypes';
 import { System, AddedSystemEntity, RemovedSystemEntity } from './System';
 import { Util } from '..';
 

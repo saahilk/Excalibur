@@ -1,4 +1,4 @@
-import { ComponentType } from './Types';
+import { ComponentType } from './ComponentTypes';
 import { Entity } from './Entity';
 
 /**
@@ -10,7 +10,26 @@ export interface Component {
    * If the owner entity does not have these components, new components will be added to the entity
    */
   readonly dependencies?: ComponentType[];
+
+  /**
+   * Type of this component, must be a unique type among component types in you game.
+   * See [[BuiltinComponentTypes]] for a list of built in excalibur types
+   */
   readonly type: ComponentType;
+
+  /**
+   * Current owning [[Entity]], if any, of this component. Null if not added to any [[Entity]]
+   */
   owner: Entity;
   clone(): Component;
+
+  /**
+   * Optional callback called when a component is added to an entity
+   */
+  onAdd?: (owner: Entity) => void;
+
+  /**
+   * Opitonal callback called when acomponent is added to an entity
+   */
+  onRemove?: (previousOwner: Entity) => void;
 }

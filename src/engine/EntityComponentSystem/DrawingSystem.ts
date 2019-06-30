@@ -1,5 +1,5 @@
 import { System, AddedSystemEntity, RemovedSystemEntity, isAddedSystemEntity, isRemoveSystemEntity } from './System';
-import { ComponentType, BuiltinComponentType } from './Types';
+import { ComponentType, BuiltinComponentType } from './ComponentTypes';
 import { Entity } from './Entity';
 import { Engine } from '../Engine';
 import { TransformComponent, CoordPlane } from './TransformComponent';

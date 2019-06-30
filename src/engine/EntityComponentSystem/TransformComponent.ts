@@ -1,5 +1,5 @@
 import { Component } from './component';
-import { BuiltinComponentType } from './Types';
+import { BuiltinComponentType } from './ComponentTypes';
 import { Vector } from '../Algebra';
 import { Entity } from './Entity';
 
@@ -29,8 +29,24 @@ export class TransformComponent implements Component {
   public scale: Vector = Vector.One;
 
   public clone() {
-    // TODO clone should copy current values
     // TODO utility for cloning, maybe a .props that has cloning utilities
-    return new TransformComponent();
+
+    const clonedTransform = new TransformComponent();
+    clonedTransform.coordPlane = this.coordPlane;
+
+    clonedTransform.pos = this.pos.clone();
+    clonedTransform.vel = this.vel.clone();
+    clonedTransform.acc = this.acc.clone();
+
+    clonedTransform.z = this.z;
+    clonedTransform.oldZ = this.oldZ;
+
+    clonedTransform.rotation = this.rotation;
+    clonedTransform.angularVelocity = this.angularVelocity;
+    clonedTransform.torque = this.torque;
+
+    clonedTransform.scale = this.scale.clone();
+
+    return clonedTransform;
   }
 }

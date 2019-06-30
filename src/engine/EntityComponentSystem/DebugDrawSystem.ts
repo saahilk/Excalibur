@@ -1,5 +1,5 @@
 import { System } from './System';
-import { BuiltinComponentType, ComponentType } from './Types';
+import { BuiltinComponentType, ComponentType } from './ComponentTypes';
 import { Entity } from './Entity';
 import { Engine } from '../Engine';
 import { PreDebugDrawEvent, PostDebugDrawEvent } from '../Events';

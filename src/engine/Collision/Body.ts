@@ -10,73 +10,67 @@ import { Shape } from './Shape';
 import { Entity } from '../EntityComponentSystem/Entity';
 import { TransformComponent } from '../EntityComponentSystem/TransformComponent';
 import { Component } from '../EntityComponentSystem/Component';
-import { ComponentType, BuiltinComponentType } from '../EntityComponentSystem/Types';
+import { ComponentType, BuiltinComponentType } from '../EntityComponentSystem/ComponentTypes';
 
 export interface BodyOptions {
-  /**
-   * Optionally the Entity associated with this body
-   */
-  entity?: Entity;
   /**
    * Optionally an actor to associate with this body
    * @obsolete Use entity parameter
    */
   actor?: Actor;
+
   /**
    * An optional collider to use in this body, if none is specified a default Box collider will be created.
    */
   collider?: Collider;
-  /**
-   * An optional transform to use in this body
-   */
-  transform?: TransformComponent;
 }
 
 /**
  * Body describes all the physical properties pos, vel, acc, rotation, angular velocity
  */
 export class Body implements Component, Clonable<Body> {
+  public readonly dependencies: ComponentType[] = [BuiltinComponentType.Transform];
   public readonly type: ComponentType = BuiltinComponentType.Body;
+  public transform: TransformComponent;
   public owner: Entity;
 
+  public pivot: Vector = Vector.Half;
   private _collider: Collider;
-  public entity: Entity;
+
   @obsolete({ message: 'Body.actor will be removed in v0.25.0', alternateMethod: 'Use Body.entity instead' })
   public get actor(): Actor {
-    if (isActor(this.entity)) {
-      return this.entity;
+    if (isActor(this.owner)) {
+      return this.owner;
     }
     return null;
   }
 
   public set actor(actor: Actor) {
-    this.entity = actor;
+    this.owner = actor;
   }
 
-  public transform: TransformComponent;
   /**
    * Constructs a new physics body associated with an actor
    */
   constructor(options: BodyOptions = {}) {
-    const { entity, actor, collider, transform } = options;
-    // Body requires a transform
-    this.entity = this.owner = entity || actor;
-    if (transform) {
-      this.transform = transform;
-    } else {
-      this.transform = new TransformComponent();
-      this.entity.addComponent(this.transform);
-    }
+    const { collider, actor } = options;
+    this.owner = actor;
+    this.collider = collider;
+  }
 
-    if (!collider && isActor(entity)) {
-      this.collider = this.useBoxCollider(entity.width, entity.height, entity.anchor);
+  onAdd(owner: Entity) {
+    if (owner.components[BuiltinComponentType.Transform]) {
+      this.transform = owner.components[BuiltinComponentType.Transform] as TransformComponent;
     } else {
-      this.collider = collider;
+      // Body requires a transform
+      this.transform = new TransformComponent();
+      owner.addComponent(this.transform);
     }
+    this._wireColliderEventsToEntity();
   }
 
   public get id() {
-    return this.entity ? this.entity.id : -1;
+    return this.owner ? this.owner.id : -1;
   }
 
   /**
@@ -84,14 +78,13 @@ export class Body implements Component, Clonable<Body> {
    */
   public clone() {
     return new Body({
-      entity: null,
       collider: this.collider ? this.collider.clone() : null
     });
   }
 
   public get active() {
-    if (isActor(this.entity)) {
-      return this.entity ? !this.entity.isKilled() : false;
+    if (isActor(this.owner)) {
+      return this.owner ? !this.owner.isKilled() : false;
     }
     return true;
   }
@@ -105,7 +98,7 @@ export class Body implements Component, Clonable<Body> {
     if (collider) {
       this._collider = collider;
       this._collider.body = this;
-      this._wireColliderEventsToActor();
+      this._wireColliderEventsToEntity();
     }
   }
 
@@ -328,8 +321,8 @@ export class Body implements Component, Clonable<Body> {
    */
   @obsolete({ message: 'Will be removed in v0.24.0', alternateMethod: 'Body.useBoxCollider' })
   public useBoxCollision(center: Vector = Vector.Zero) {
-    if (isActor(this.entity)) {
-      this.useBoxCollider(this.entity.width, this.entity.height, this.entity.anchor, center);
+    if (isActor(this.owner)) {
+      this.useBoxCollider(this.owner.width, this.owner.height, this.owner.anchor, center);
     }
   }
 
@@ -393,30 +386,29 @@ export class Body implements Component, Clonable<Body> {
   }
 
   // TODO remove this, eventually events will stay local to the thing they are around
-  private _wireColliderEventsToActor() {
-    this.collider.clear();
-    this.collider.on('precollision', (evt: PreCollisionEvent<Collider>) => {
-      if (this.entity) {
-        this.entity.emit('precollision', new PreCollisionEvent(evt.target.body.entity, evt.other.body.entity, evt.side, evt.intersection));
-      }
-    });
-    this.collider.on('postcollision', (evt: PostCollisionEvent<Collider>) => {
-      if (this.entity) {
-        this.entity.emit(
-          'postcollision',
-          new PostCollisionEvent(evt.target.body.entity, evt.other.body.entity, evt.side, evt.intersection)
-        );
-      }
-    });
-    this.collider.on('collisionstart', (evt: CollisionStartEvent<Collider>) => {
-      if (this.entity) {
-        this.entity.emit('collisionstart', new CollisionStartEvent(evt.target.body.entity, evt.other.body.entity, evt.pair));
-      }
-    });
-    this.collider.on('collisionend', (evt: CollisionEndEvent<Collider>) => {
-      if (this.entity) {
-        this.entity.emit('collisionend', new CollisionEndEvent(evt.target.body.entity, evt.other.body.entity));
-      }
-    });
+  private _wireColliderEventsToEntity() {
+    if (this.owner) {
+      this.collider.clear();
+      this.collider.on('precollision', (evt: PreCollisionEvent<Collider>) => {
+        if (this.owner) {
+          this.owner.emit('precollision', new PreCollisionEvent(evt.target.body.owner, evt.other.body.owner, evt.side, evt.intersection));
+        }
+      });
+      this.collider.on('postcollision', (evt: PostCollisionEvent<Collider>) => {
+        if (this.owner) {
+          this.owner.emit('postcollision', new PostCollisionEvent(evt.target.body.owner, evt.other.body.owner, evt.side, evt.intersection));
+        }
+      });
+      this.collider.on('collisionstart', (evt: CollisionStartEvent<Collider>) => {
+        if (this.owner) {
+          this.owner.emit('collisionstart', new CollisionStartEvent(evt.target.body.owner, evt.other.body.owner, evt.pair));
+        }
+      });
+      this.collider.on('collisionend', (evt: CollisionEndEvent<Collider>) => {
+        if (this.owner) {
+          this.owner.emit('collisionend', new CollisionEndEvent(evt.target.body.owner, evt.other.body.owner));
+        }
+      });
+    }
   }
 }

@@ -1,4 +1,4 @@
-import { ComponentType } from './Types';
+import { ComponentType } from './ComponentTypes';
 import { Entity } from './Entity';
 import { Engine } from '../Engine';
 import { Message, MaybeObserver } from '../Util/Observable';

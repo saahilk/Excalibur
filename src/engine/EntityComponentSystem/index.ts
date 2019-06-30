@@ -1,7 +1,7 @@
 export * from './Entity';
 export * from './Component';
 export * from './System';
-export * from './Types';
+export * from './ComponentTypes';
 
 export * from './EntityRepository';
 

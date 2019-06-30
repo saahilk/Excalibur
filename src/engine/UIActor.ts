@@ -4,7 +4,7 @@ import { Actor, ActorArgs } from './Actor';
 import * as Traits from './Traits/Index';
 import { CollisionType } from './Collision/CollisionType';
 import { Shape } from './Collision/Shape';
-import { BuiltinComponentType } from './EntityComponentSystem/Types';
+import { BuiltinComponentType } from './EntityComponentSystem/ComponentTypes';
 import { TransformComponent, CoordPlane } from './EntityComponentSystem/TransformComponent';
 import { obsolete } from './Util/Decorators';
 

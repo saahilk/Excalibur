@@ -1,6 +1,6 @@
 import { Vector } from '../Algebra';
 import { Component } from './component';
-import { BuiltinComponentType } from './Types';
+import { BuiltinComponentType } from './ComponentTypes';
 import { Entity } from './Entity';
 import { Drawable } from '../Drawing/Drawable';
 import { HasPreDraw, HasPostDraw } from '../Drawing/HasPreDraw';

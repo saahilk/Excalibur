@@ -1,5 +1,5 @@
 import { Component } from './Component';
-import { BuiltinComponentType, ComponentType } from './Types';
+import { BuiltinComponentType, ComponentType } from './ComponentTypes';
 import { Entity } from './Entity';
 import { Color } from '../Drawing/Color';
 

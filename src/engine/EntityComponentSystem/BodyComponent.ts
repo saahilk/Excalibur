@@ -1,5 +1,5 @@
 import { Component } from './component';
-import { BuiltinComponentType, ComponentType } from './Types';
+import { BuiltinComponentType, ComponentType } from './ComponentTypes';
 import { Body } from '../Collision/Body';
 import { Entity } from './Entity';
 

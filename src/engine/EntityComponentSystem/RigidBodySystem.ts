@@ -1,6 +1,6 @@
 import { System } from './System';
 import { Entity } from './Entity';
-import { ComponentType, BuiltinComponentType } from './Types';
+import { ComponentType, BuiltinComponentType } from './ComponentTypes';
 
 export class RigidBodySystem implements System {
   public readonly types: ComponentType[] = [BuiltinComponentType.Body];
