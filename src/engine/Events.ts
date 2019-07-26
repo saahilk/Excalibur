@@ -7,9 +7,10 @@ import { Engine } from './Engine';
 import { TileMap } from './TileMap';
 import { Side } from './Collision/Side';
 import * as Input from './Input/Index';
-import { Pair, Camera } from './index';
+import { Pair } from './index';
 import { Collider } from './Collision/Collider';
 import { Entity } from './EntityComponentSystem/Entity';
+import { OnInitialize, OnPreUpdate, OnPostUpdate } from './Interfaces/LifecycleEvents';
 
 export enum EventTypes {
   Kill = 'kill',
@@ -329,8 +330,8 @@ export class PostDebugDrawEvent extends GameEvent<Entity | Actor | Scene | Engin
 /**
  * The 'preupdate' event is emitted on actors, scenes, camera, and engine before the update starts.
  */
-export class PreUpdateEvent extends GameEvent<Actor | Scene | Engine | TileMap | Camera> {
-  constructor(public engine: Engine, public delta: number, public target: Actor | Scene | Engine | TileMap | Camera) {
+export class PreUpdateEvent<T extends OnPreUpdate> extends GameEvent<T> {
+  constructor(public engine: Engine, public delta: number, public target: T) {
     super();
   }
 }
@@ -338,8 +339,8 @@ export class PreUpdateEvent extends GameEvent<Actor | Scene | Engine | TileMap |
 /**
  * The 'postupdate' event is emitted on actors, scenes, camera, and engine after the update ends.
  */
-export class PostUpdateEvent extends GameEvent<Actor | Scene | Engine | TileMap | Camera> {
-  constructor(public engine: Engine, public delta: number, public target: Actor | Scene | Engine | TileMap | Camera) {
+export class PostUpdateEvent<T extends OnPostUpdate> extends GameEvent<T> {
+  constructor(public engine: Engine, public delta: number, public target: T) {
     super();
   }
 }
@@ -544,11 +545,11 @@ export class CollisionEndEvent<T extends Collider | Entity = Entity> extends Gam
 /**
  * Event thrown on an [[Actor]] and a [[Scene]] only once before the first update call
  */
-export class InitializeEvent extends GameEvent<Actor | Scene | Engine | Camera> {
+export class InitializeEvent<T extends OnInitialize> extends GameEvent<T> {
   /**
    * @param engine  The reference to the current engine
    */
-  constructor(public engine: Engine, public target: Actor | Scene | Engine | Camera) {
+  constructor(public engine: Engine, public target: T) {
     super();
   }
 }

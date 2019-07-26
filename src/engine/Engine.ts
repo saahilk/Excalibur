@@ -43,6 +43,9 @@ import { BrowserEvents } from './Util/Browser';
 import { System } from './EntityComponentSystem/System';
 import { DrawingSystem } from './EntityComponentSystem/DrawingSystem';
 import { DebugDrawSystem } from './EntityComponentSystem/DebugDrawSystem';
+import { ColliderDrawSystem } from './EntityComponentSystem/ColliderDrawSystem';
+import { RigidBodySystem } from './EntityComponentSystem/RigidBodySystem';
+import { MotionSystem } from './EntityComponentSystem/MotionSystem';
 
 /**
  * Enum representing the different display modes available to Excalibur
@@ -207,13 +210,17 @@ export class Engine extends Class implements CanInitialize, CanUpdate, CanDraw {
    */
   public canvasElementId: string;
 
-  /**
-   * Current list of systems
-   */
-  public systems: System[];
+  public static DefaultSystems = [
+    MotionSystem,
+    RigidBodySystem,
+    DrawingSystem,
+    ColliderDrawSystem,
+    DebugDrawSystem
+  ];
 
-  public buildDefaultSystems(engine: Engine): System[] {
-    return [new DrawingSystem(engine), new DebugDrawSystem(engine)];
+
+  public buildDefaultSystems(): System[] {
+    return Engine.DefaultSystems.map(ctor => new ctor(this)); 
   }
 
   /**
@@ -412,13 +419,13 @@ export class Engine extends Class implements CanInitialize, CanUpdate, CanDraw {
 
   private _isInitialized: boolean = false;
 
-  public on(eventName: Events.initialize, handler: (event: Events.InitializeEvent) => void): void;
+  public on(eventName: Events.initialize, handler: (event: Events.InitializeEvent<Engine>) => void): void;
   public on(eventName: Events.visible, handler: (event: VisibleEvent) => void): void;
   public on(eventName: Events.hidden, handler: (event: HiddenEvent) => void): void;
   public on(eventName: Events.start, handler: (event: GameStartEvent) => void): void;
   public on(eventName: Events.stop, handler: (event: GameStopEvent) => void): void;
-  public on(eventName: Events.preupdate, handler: (event: PreUpdateEvent) => void): void;
-  public on(eventName: Events.postupdate, handler: (event: PostUpdateEvent) => void): void;
+  public on(eventName: Events.preupdate, handler: (event: PreUpdateEvent<Engine>) => void): void;
+  public on(eventName: Events.postupdate, handler: (event: PostUpdateEvent<Engine>) => void): void;
   public on(eventName: Events.preframe, handler: (event: PreFrameEvent) => void): void;
   public on(eventName: Events.postframe, handler: (event: PostFrameEvent) => void): void;
   public on(eventName: Events.predraw, handler: (event: PreDrawEvent) => void): void;
@@ -428,13 +435,13 @@ export class Engine extends Class implements CanInitialize, CanUpdate, CanDraw {
     super.on(eventName, handler);
   }
 
-  public once(eventName: Events.initialize, handler: (event: Events.InitializeEvent) => void): void;
+  public once(eventName: Events.initialize, handler: (event: Events.InitializeEvent<Engine>) => void): void;
   public once(eventName: Events.visible, handler: (event: VisibleEvent) => void): void;
   public once(eventName: Events.hidden, handler: (event: HiddenEvent) => void): void;
   public once(eventName: Events.start, handler: (event: GameStartEvent) => void): void;
   public once(eventName: Events.stop, handler: (event: GameStopEvent) => void): void;
-  public once(eventName: Events.preupdate, handler: (event: PreUpdateEvent) => void): void;
-  public once(eventName: Events.postupdate, handler: (event: PostUpdateEvent) => void): void;
+  public once(eventName: Events.preupdate, handler: (event: PreUpdateEvent<Engine>) => void): void;
+  public once(eventName: Events.postupdate, handler: (event: PostUpdateEvent<Engine>) => void): void;
   public once(eventName: Events.preframe, handler: (event: PreFrameEvent) => void): void;
   public once(eventName: Events.postframe, handler: (event: PostFrameEvent) => void): void;
   public once(eventName: Events.predraw, handler: (event: PreDrawEvent) => void): void;
@@ -444,13 +451,13 @@ export class Engine extends Class implements CanInitialize, CanUpdate, CanDraw {
     super.once(eventName, handler);
   }
 
-  public off(eventName: Events.initialize, handler?: (event: Events.InitializeEvent) => void): void;
+  public off(eventName: Events.initialize, handler?: (event: Events.InitializeEvent<Engine>) => void): void;
   public off(eventName: Events.visible, handler?: (event: VisibleEvent) => void): void;
   public off(eventName: Events.hidden, handler?: (event: HiddenEvent) => void): void;
   public off(eventName: Events.start, handler?: (event: GameStartEvent) => void): void;
   public off(eventName: Events.stop, handler?: (event: GameStopEvent) => void): void;
-  public off(eventName: Events.preupdate, handler?: (event: PreUpdateEvent) => void): void;
-  public off(eventName: Events.postupdate, handler?: (event: PostUpdateEvent) => void): void;
+  public off(eventName: Events.preupdate, handler?: (event: PreUpdateEvent<Engine>) => void): void;
+  public off(eventName: Events.postupdate, handler?: (event: PostUpdateEvent<Engine>) => void): void;
   public off(eventName: Events.preframe, handler?: (event: PreFrameEvent) => void): void;
   public off(eventName: Events.postframe, handler?: (event: PostFrameEvent) => void): void;
   public off(eventName: Events.predraw, handler?: (event: PreDrawEvent) => void): void;
@@ -1031,8 +1038,6 @@ O|===|* >________________>\n\
     if (!this.canvasElementId) {
       document.body.appendChild(this.canvas);
     }
-
-    this.systems = this.buildDefaultSystems(this);
   }
 
   public onInitialize(_engine: Engine) {

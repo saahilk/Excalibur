@@ -2,6 +2,55 @@ import { Engine } from './../Engine';
 import * as Events from './../Events';
 import { Scene } from '../Scene';
 
+
+export interface _initialize {
+  _initialize(engine: Engine): void;
+}
+
+export function has_initialize(a: any): a is _initialize {
+  return !!a._initialize;
+}
+
+export interface OnInitialize {
+  onInitialize(engine: Engine): void;
+}
+
+export function hasOnInitialize(a: any): a is OnInitialize {
+  return !!a.onInitialize;
+}
+
+export interface _preupdate {
+  _preupdate(engine: Engine, delta: number): void;
+}
+
+export function has_preupdate(a: any): a is _preupdate {
+  return !!a._preupdate;
+}
+
+export interface OnPreUpdate {
+  onPreUpdate(engine: Engine, delta: number): void;
+}
+
+export function hasOnPreUpdate(a: any): a is OnPreUpdate {
+  return !!a.onPreUpdate;
+}
+
+export interface _postupdate {
+  _postupdate(engine: Engine, delta: number): void;
+}
+
+export function has_postupdate(a: any): a is _postupdate {
+  return !!a.onPostUpdate;
+}
+
+export interface OnPostUpdate {
+  onPostUpdate(engine: Engine, delta: number): void;
+}
+
+export function hasOnPostUpdate(a: any): a is OnPostUpdate {
+  return !!a.onPostUpdate;
+}
+
 export interface CanInitialize {
   /**
    * Overridable implementation
@@ -11,9 +60,9 @@ export interface CanInitialize {
   /**
    * Event signatures
    */
-  on(eventName: Events.initialize, handler: (event: Events.InitializeEvent) => void): void;
-  once(eventName: Events.initialize, handler: (event: Events.InitializeEvent) => void): void;
-  off(eventName: Events.initialize, handler?: (event: Events.InitializeEvent) => void): void;
+  on(eventName: Events.initialize, handler: (event: Events.InitializeEvent<any>) => void): void;
+  once(eventName: Events.initialize, handler: (event: Events.InitializeEvent<any>) => void): void;
+  off(eventName: Events.initialize, handler?: (event: Events.InitializeEvent<any>) => void): void;
 }
 
 export interface CanActivate {
@@ -53,9 +102,9 @@ export interface CanUpdate {
   /**
    * Event signature
    */
-  on(eventName: Events.preupdate, handler: (event: Events.PreUpdateEvent) => void): void;
-  once(eventName: Events.preupdate, handler: (event: Events.PreUpdateEvent) => void): void;
-  off(eventName: Events.preupdate, handler?: (event: Events.PreUpdateEvent) => void): void;
+  on(eventName: Events.preupdate, handler: (event: Events.PreUpdateEvent<any>) => void): void;
+  once(eventName: Events.preupdate, handler: (event: Events.PreUpdateEvent<any>) => void): void;
+  off(eventName: Events.preupdate, handler?: (event: Events.PreUpdateEvent<any>) => void): void;
 
   /**
    * Overridable implementation
@@ -65,9 +114,9 @@ export interface CanUpdate {
   /**
    * Event signatures
    */
-  on(eventName: Events.postupdate, handler: (event: Events.PostUpdateEvent) => void): void;
-  once(eventName: Events.postupdate, handler: (event: Events.PostUpdateEvent) => void): void;
-  off(eventName: Events.postupdate, handler?: (event: Events.PostUpdateEvent) => void): void;
+  on(eventName: Events.postupdate, handler: (event: Events.PostUpdateEvent<any>) => void): void;
+  once(eventName: Events.postupdate, handler: (event: Events.PostUpdateEvent<any>) => void): void;
+  off(eventName: Events.postupdate, handler?: (event: Events.PostUpdateEvent<any>) => void): void;
 }
 
 export interface CanDraw {

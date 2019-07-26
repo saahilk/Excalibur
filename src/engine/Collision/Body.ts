@@ -69,6 +69,10 @@ export class Body implements Component, Clonable<Body> {
     this._wireColliderEventsToEntity();
   }
 
+  onRemove(_previousOwner: Entity) {
+    this.owner = null;
+  }
+
   public get id() {
     return this.owner ? this.owner.id : -1;
   }

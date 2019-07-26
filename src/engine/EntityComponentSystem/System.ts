@@ -5,8 +5,10 @@ import { Message, MaybeObserver } from '../Util/Observable';
 
 /**
  * An Excalibur [[System]] that updates entities of certain types.
+ * Systems are scene specific
  */
 export interface System extends MaybeObserver<AddedSystemEntity | RemovedSystemEntity> {
+  
   /**
    * The types of entities that this system operates on
    */

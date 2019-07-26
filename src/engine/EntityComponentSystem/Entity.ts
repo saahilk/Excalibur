@@ -3,6 +3,9 @@ import { Component } from './Component';
 import { Observable, Message } from '../Util/Observable';
 import { Class } from '../Class';
 import { ComponentType } from './ComponentTypes';
+import { OnInitialize, OnPreUpdate, OnPostUpdate } from '../Interfaces/LifecycleEvents';
+import { Engine } from '../Engine';
+import { InitializeEvent, PreUpdateEvent, PostUpdateEvent } from '../Events';
 
 export interface EntityComponent {
   component: Component;
@@ -28,7 +31,7 @@ export function isRemovedComponent(x: Message<EntityComponent>): x is RemovedCom
 
 export type ComponentMap = { [type: string]: Component };
 
-export class Entity extends Class {
+export class Entity extends Class implements OnInitialize, OnPreUpdate, OnPostUpdate  {
   private static _ID = 0;
 
   /**
@@ -122,5 +125,80 @@ export class Entity extends Class {
 
   public has(type: ComponentType): boolean {
     return !!this.components[type];
+  }
+
+
+  private _isInitialized = false;
+  
+  /**
+   * Gets whether the actor is Initialized
+   */
+  public get isInitialized(): boolean {
+    return this._isInitialized;
+  }
+
+  /**
+   * Initializes this entity, meant to be called by the Scene before first update not by users of Excalibur.
+   *
+   * It is not recommended that internal excalibur methods be overriden, do so at your own risk.
+   *
+   * @internal
+   */
+  public _initialize(engine: Engine) {
+    if (!this.isInitialized) {
+      this.onInitialize(engine);
+      super.emit('initialize', new InitializeEvent(engine, this));
+      this._isInitialized = true;
+    }
+  }
+
+  /**
+   * It is not recommended that internal excalibur methods be overriden, do so at your own risk.
+   *
+   * Internal _preupdate handler for [[onPreUpdate]] lifecycle event
+   * @internal
+   */
+  public _preupdate(engine: Engine, delta: number): void {
+    this.emit('preupdate', new PreUpdateEvent(engine, delta, this));
+    this.onPreUpdate(engine, delta);
+  }
+
+  /**
+   * It is not recommended that internal excalibur methods be overriden, do so at your own risk.
+   *
+   * Internal _preupdate handler for [[onPostUpdate]] lifecycle event
+   * @internal
+   */
+  public _postupdate(engine: Engine, delta: number): void {
+    this.emit('postupdate', new PostUpdateEvent(engine, delta, this));
+    this.onPostUpdate(engine, delta);
+  }
+
+  /**
+   * `onInitialize` is called before the first update of the entity. This method is meant to be
+   * overridden.
+   *
+   * Synonymous with the event handler `.on('initialize', (evt) => {...})`
+   */
+  public onInitialize(_engine: Engine): void {
+    // Override me
+  }
+
+   /**
+   * Safe to override onPreUpdate lifecycle event handler. Synonymous with `.on('preupdate', (evt) =>{...})`
+   *
+   * `onPreUpdate` is called directly before an entity is updated.
+   */
+  public onPreUpdate(_engine: Engine, _delta: number): void {
+    // Override me
+  }
+
+  /**
+   * Safe to override onPostUpdate lifecycle event handler. Synonymous with `.on('postupdate', (evt) =>{...})`
+   *
+   * `onPostUpdate` is called directly after an entity is updated.
+   */
+  public onPostUpdate(_engine: Engine, _delta: number): void {
+    // Override me
   }
 }

@@ -6,8 +6,6 @@ import { TransformComponent, CoordPlane } from './TransformComponent';
 import { DrawingComponent } from './DrawingComponent';
 import { PreDrawEvent, PostDrawEvent, ExitViewPortEvent, EnterViewPortEvent } from '../Events';
 import { SortedList } from '../Util/SortedList';
-import { isActor } from '../Actor';
-import { Vector } from '../Algebra';
 import { OffscreenComponent } from './OffscreenComponent';
 
 export class DrawingSystem implements System {
@@ -66,23 +64,7 @@ export class DrawingSystem implements System {
 
       if (drawing.current) {
         drawing.current.tick(delta);
-      } else {
-        // TODO this is not good, couples collider geometry with drawing system
-        if (isActor(entity) && entity.color && entity.body && entity.body.collider && entity.body.collider.shape) {
-          this.ctx.save();
-          this.ctx.translate(transform.pos.x, transform.pos.y);
-          this.ctx.rotate(transform.rotation);
-
-          this.ctx.translate(-entity.width * entity.anchor.x, -entity.height * entity.anchor.y);
-
-          entity.body.collider.shape.draw(
-            this.ctx,
-            entity.color,
-            new Vector(entity.width * entity.anchor.x, entity.height * entity.anchor.y)
-          );
-          this.ctx.restore();
-        }
-      }
+      } 
 
       // TODO delete replace these this with a utility method
       // const preDraw = () => {

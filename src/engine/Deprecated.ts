@@ -10,7 +10,7 @@ import { Loadable } from './Interfaces/Loadable';
 import { Action } from './Actions/Action';
 import { ActorArgs, ActorDefaults } from './Actor';
 import { CapturePointerConfig } from './Traits/CapturePointer';
-import { CircleOptions, CollisionBroadphase, EdgeOptions, EnginePhysics, ConvexPolygonOptions } from './Collision/Index';
+import { CircleOptions, CollisionProcessor, EdgeOptions, EnginePhysics, ConvexPolygonOptions } from './Collision/Index';
 import { Physics } from './Physics';
 import { DebugFlags } from './DebugFlags';
 import { CollidersHash, FrameStatistics, FrameDurationStats, PhysicsStatistics, FrameActorStats } from './Debug';
@@ -160,7 +160,7 @@ export type IDebugFlags = DebugFlags;
 /**
  * @obsolete Use CollisionBroadphase, ICollisionBroadphase will be removed in v0.24.0
  */
-export type ICollisionBroadphase = CollisionBroadphase;
+export type ICollisionBroadphase = CollisionProcessor;
 
 /**
  * @obsolete Use CollidersHash, IColliderHash will be removed in v0.24.0

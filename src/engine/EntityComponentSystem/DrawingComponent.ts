@@ -5,20 +5,6 @@ import { Entity } from './Entity';
 import { Drawable } from '../Drawing/Drawable';
 import { HasPreDraw, HasPostDraw } from '../Drawing/HasPreDraw';
 
-export interface HasTick {
-  tick(delta: number): void;
-}
-
-export interface CanCanvasDraw {
-  draw(ctx: CanvasRenderingContext2D, x: number, y: number): void;
-}
-
-export interface Loaded {
-  loaded: boolean;
-}
-
-export type Graphic = HasTick & CanCanvasDraw & Loaded;
-
 export interface DrawingOptions {
   /**
    * Name of current graphic to use
@@ -36,23 +22,6 @@ export interface DrawingOptions {
    * List of graphics
    */
   graphics?: { [graphicName: string]: Drawable };
-
-  /**
-   * If no drawing is specified, the width to use for draw calculations.
-   * For example in a custom draw with anchor in onPreDraw or onPostDraw
-   */
-  noDrawingWidth?: number;
-
-  /**
-   * If no drawing is specified, the height to use for draw calculations.
-   * For example in a custom draw with anchor in onPreDraw or onPostDraw
-   */
-  noDrawingHeight?: number;
-
-  /**
-   * Optional anchor override in relative to width and height of the current drawing, otherwise the current drawing anchor is used
-   */
-  noDrawingAnchor?: ex.Vector;
 
   /**
    * Optional offset in absolute pixels to shift all graphics in this component from each graphic's anchor (default is top left corner)
@@ -78,27 +47,19 @@ export class DrawingComponent implements Component, HasPreDraw, HasPostDraw {
     // Defaults
     options = {
       visible: this.visible,
-      noDrawingWidth: this.noDrawingWidth,
-      noDrawingHeight: this.noDrawingHeight,
-      noDrawingAnchor: this.noDrawingAnchor,
       ...options
     };
 
-    const { current, visible, graphics, offset, noDrawingWidth, noDrawingHeight, noDrawingAnchor } = options;
+    const { current, visible, graphics, offset } = options;
 
     this._graphics = graphics || {};
     this.offset = offset || this.offset;
     this.visible = !!visible;
-    this.noDrawingWidth = noDrawingWidth;
-    this.noDrawingHeight = noDrawingHeight;
-    this.noDrawingAnchor = noDrawingAnchor;
 
     if (current && this._graphics[current]) {
       this._currentDrawing = this._graphics[current];
     }
   }
-
-  public noDrawingAnchor: Vector = Vector.Half;
 
   /**
    * Sets or gets wether any drawing should be visible in this component
@@ -109,23 +70,6 @@ export class DrawingComponent implements Component, HasPreDraw, HasPostDraw {
    * Offset to apply to all drawings in this component
    */
   public offset: Vector = Vector.Zero;
-
-  /**
-   * Rotation to apply to all drawings in this component
-   */
-  public rotation: number = 0;
-
-  /**
-   * If no drawing is specified, the height to use for draw calculations.
-   * For example in a custom draw with anchor in onPreDraw or onPostDraw
-   */
-  public noDrawingWidth: number = 0;
-
-  /**
-   * If no drawing is specified, the height to use for draw calculations.
-   * For example in a custom draw with anchor in onPreDraw or onPostDraw
-   */
-  public noDrawingHeight: number = 0;
 
   /**
    * Returns the currently displayed graphic, null if hidden
@@ -179,7 +123,7 @@ export class DrawingComponent implements Component, HasPreDraw, HasPostDraw {
     if (this._currentDrawing) {
       return this._currentDrawing.drawWidth;
     }
-    return this.noDrawingWidth;
+    return 0;
   }
 
   /**
@@ -190,7 +134,7 @@ export class DrawingComponent implements Component, HasPreDraw, HasPostDraw {
     if (this._currentDrawing) {
       return this._currentDrawing.drawHeight;
     }
-    return this.noDrawingHeight;
+    return 0;
   }
 
   public onPreDraw(_ctx: CanvasRenderingContext2D, _delta: number) {

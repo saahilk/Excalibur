@@ -20,7 +20,7 @@ export interface Component {
   /**
    * Current owning [[Entity]], if any, of this component. Null if not added to any [[Entity]]
    */
-  owner: Entity;
+  owner?: Entity;
   clone(): Component;
 
   /**

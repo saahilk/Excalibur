@@ -1,5 +1,5 @@
 import { Physics } from '../Physics';
-import { CollisionProcessor } from './CollisionResolver';
+import { CollisionProcessor } from './CollisionProcessor';
 import { DynamicTree } from './DynamicTree';
 import { Pair } from './Pair';
 import { Body } from './Body';

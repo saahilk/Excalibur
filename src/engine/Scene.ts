@@ -1,5 +1,4 @@
 import { UIActor } from './UIActor';
-import { Physics } from './Physics';
 import {
   InitializeEvent,
   ActivateEvent,
@@ -14,9 +13,6 @@ import {
 } from './Events';
 import { Logger } from './Util/Log';
 import { Timer } from './Timer';
-import { DynamicTreeCollisionBroadphase } from './Collision/DynamicTreeCollisionBroadphase';
-import { CollisionBroadphase } from './Collision/CollisionResolver';
-import { SortedList } from './Util/SortedList';
 import { Engine } from './Engine';
 import { Group } from './Group';
 import { TileMap } from './TileMap';
@@ -29,9 +25,10 @@ import * as Events from './Events';
 import * as ActorUtils from './Util/Actors';
 import { Trigger } from './Trigger';
 import { obsolete } from './Util/Decorators';
-import { Body } from './Collision/Body';
 import { EntityRepository } from './EntityComponentSystem/EntityRepository';
 import { Entity } from './EntityComponentSystem/Entity';
+import { System } from './EntityComponentSystem/System';
+import { has_initialize, has_preupdate, has_postupdate } from './Interfaces/LifecycleEvents';
 /**
  * [[Actor|Actors]] are composed together into groupings called Scenes in
  * Excalibur. The metaphor models the same idea behind real world
@@ -53,14 +50,19 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
   public actors: Actor[] = [];
 
   /**
-   * Repository of entities in this Scene
+   * Repository of entities in this [[Scene]]
    */
   public entities: EntityRepository = new EntityRepository();
 
   /**
+   * List of systems active in this [[Scene]], if none specified the default list from engine is used
+   */
+  public systems: System[];
+
+  /**
    * Physics bodies in the current scene
    */
-  private _bodies: Body[] = [];
+  // private _bodies: Body[] = [];
 
   /**
    * The triggers in the current scene
@@ -96,9 +98,9 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
 
   private _isInitialized: boolean = false;
 
-  private _sortedDrawingTree: SortedList<Actor> = new SortedList<Actor>(Actor.prototype.getZIndex);
+  // private _sortedDrawingTree: SortedList<Actor> = new SortedList<Actor>(Actor.prototype.getZIndex);
 
-  private _broadphase: CollisionBroadphase = new DynamicTreeCollisionBroadphase();
+  // private _broadphase: CollisionProcessor = new DynamicTreeCollisionProcessor();
 
   private _killQueue: Actor[] = [];
   private _triggerKillQueue: Trigger[] = [];
@@ -116,11 +118,11 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
     }
   }
 
-  public on(eventName: Events.initialize, handler: (event: InitializeEvent) => void): void;
+  public on(eventName: Events.initialize, handler: (event: InitializeEvent<Scene>) => void): void;
   public on(eventName: Events.activate, handler: (event: ActivateEvent) => void): void;
   public on(eventName: Events.deactivate, handler: (event: DeactivateEvent) => void): void;
-  public on(eventName: Events.preupdate, handler: (event: PreUpdateEvent) => void): void;
-  public on(eventName: Events.postupdate, handler: (event: PostUpdateEvent) => void): void;
+  public on(eventName: Events.preupdate, handler: (event: PreUpdateEvent<Scene>) => void): void;
+  public on(eventName: Events.postupdate, handler: (event: PostUpdateEvent<Scene>) => void): void;
   public on(eventName: Events.predraw, handler: (event: PreDrawEvent) => void): void;
   public on(eventName: Events.postdraw, handler: (event: PostDrawEvent) => void): void;
   public on(eventName: Events.predebugdraw, handler: (event: PreDebugDrawEvent) => void): void;
@@ -130,11 +132,11 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
     super.on(eventName, handler);
   }
 
-  public once(eventName: Events.initialize, handler: (event: InitializeEvent) => void): void;
+  public once(eventName: Events.initialize, handler: (event: InitializeEvent<Scene>) => void): void;
   public once(eventName: Events.activate, handler: (event: ActivateEvent) => void): void;
   public once(eventName: Events.deactivate, handler: (event: DeactivateEvent) => void): void;
-  public once(eventName: Events.preupdate, handler: (event: PreUpdateEvent) => void): void;
-  public once(eventName: Events.postupdate, handler: (event: PostUpdateEvent) => void): void;
+  public once(eventName: Events.preupdate, handler: (event: PreUpdateEvent<Scene>) => void): void;
+  public once(eventName: Events.postupdate, handler: (event: PostUpdateEvent<Scene>) => void): void;
   public once(eventName: Events.predraw, handler: (event: PreDrawEvent) => void): void;
   public once(eventName: Events.postdraw, handler: (event: PostDrawEvent) => void): void;
   public once(eventName: Events.predebugdraw, handler: (event: PreDebugDrawEvent) => void): void;
@@ -144,11 +146,11 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
     super.once(eventName, handler);
   }
 
-  public off(eventName: Events.initialize, handler?: (event: InitializeEvent) => void): void;
+  public off(eventName: Events.initialize, handler?: (event: InitializeEvent<Scene>) => void): void;
   public off(eventName: Events.activate, handler?: (event: ActivateEvent) => void): void;
   public off(eventName: Events.deactivate, handler?: (event: DeactivateEvent) => void): void;
-  public off(eventName: Events.preupdate, handler?: (event: PreUpdateEvent) => void): void;
-  public off(eventName: Events.postupdate, handler?: (event: PostUpdateEvent) => void): void;
+  public off(eventName: Events.preupdate, handler?: (event: PreUpdateEvent<Scene>) => void): void;
+  public off(eventName: Events.postupdate, handler?: (event: PostUpdateEvent<Scene>) => void): void;
   public off(eventName: Events.predraw, handler?: (event: PreDrawEvent) => void): void;
   public off(eventName: Events.postdraw, handler?: (event: PostDrawEvent) => void): void;
   public off(eventName: Events.predebugdraw, handler?: (event: PreDebugDrawEvent) => void): void;
@@ -244,6 +246,7 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
   public _initialize(engine: Engine) {
     if (!this.isInitialized) {
       this._engine = engine;
+      this.systems = this.systems || engine.buildDefaultSystems();
       if (this.camera) {
         this.camera.x = engine.halfDrawWidth;
         this.camera.y = engine.halfDrawHeight;
@@ -268,7 +271,7 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
   public _activate(oldScene: Scene, newScene: Scene): void {
     this._logger.debug('Scene.onActivate', this);
     // TODO add a overridable method so that scenes can dictate their systems
-    for (const s of this._engine.systems) {
+    for (const s of this.systems) {
       this.entities.addSystem(s);
     }
     this.onActivate(oldScene, newScene);
@@ -282,7 +285,7 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
    */
   public _deactivate(oldScene: Scene, newScene: Scene): void {
     this._logger.debug('Scene.onDeactivate', this);
-    for (const s of this._engine.systems) {
+    for (const s of this.systems) {
       this.entities.removeSystem(s);
     }
     this.onDeactivate(oldScene, newScene);
@@ -367,28 +370,41 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
       this.tileMaps[i].update(engine, delta);
     }
 
-    for (const s of engine.systems) {
+    for (const a of this.actors) {
+      if (has_initialize(a)) {
+        a._initialize(engine);
+      }
+      if (has_preupdate(a)) {
+        a._preupdate(engine, delta);
+      }
+    }
+    for (const s of this.systems) {
       if (s.preupdate) {
         s.preupdate(engine, delta);
       }
     }
 
-    for (const s of engine.systems) {
+    for (const s of this.systems) {
       const entitiesByTypes = this.entities.queryByTypes(s.types);
       s.update(entitiesByTypes, delta);
     }
 
-    for (const s of engine.systems) {
+    for (const s of this.systems) {
       if (s.postupdate) {
         s.postupdate(engine, delta);
       }
     }
+    for (const a of this.actors) {
+      if (has_postupdate(a)) {
+        a._preupdate(engine, delta);
+      }
+    }
 
     // Cycle through actors updating actors
-    for (i = 0, len = this.actors.length; i < len; i++) {
-      this.actors[i].update(engine, delta);
-      this._bodies[i] = this.actors[i].body;
-    }
+    // for (i = 0, len = this.actors.length; i < len; i++) {
+    //   this.actors[i].update(engine, delta);
+    //   this._bodies[i] = this.actors[i].body;
+    // }
 
     // Cycle through triggers updating
     for (i = 0, len = this.triggers.length; i < len; i++) {
@@ -401,30 +417,30 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
     engine.input.pointers.propagate();
 
     // Run the broadphase and narrowphase
-    if (this._broadphase && Physics.enabled) {
-      const beforeBroadphase = Date.now();
-      this._broadphase.update(this._bodies, delta);
-      let pairs = this._broadphase.broadphase(this._bodies, delta, engine.stats.currFrame);
-      const afterBroadphase = Date.now();
+    // if (this._broadphase && Physics.enabled) {
+    //   const beforeBroadphase = Date.now();
+    //   this._broadphase.update(this._bodies, delta);
+    //   let pairs = this._broadphase.broadphase(this._bodies, delta, engine.stats.currFrame);
+    //   const afterBroadphase = Date.now();
 
-      const beforeNarrowphase = Date.now();
-      let iter: number = Physics.collisionPasses;
-      const collisionDelta = delta / iter;
-      while (iter > 0) {
-        // Run the narrowphase
-        pairs = this._broadphase.narrowphase(pairs, engine.stats.currFrame);
-        // Run collision resolution strategy
-        pairs = this._broadphase.resolve(pairs, collisionDelta, Physics.collisionResolutionStrategy);
+    //   const beforeNarrowphase = Date.now();
+    //   let iter: number = Physics.collisionPasses;
+    //   const collisionDelta = delta / iter;
+    //   while (iter > 0) {
+    //     // Run the narrowphase
+    //     pairs = this._broadphase.narrowphase(pairs, engine.stats.currFrame);
+    //     // Run collision resolution strategy
+    //     pairs = this._broadphase.resolve(pairs, collisionDelta, Physics.collisionResolutionStrategy);
 
-        this._broadphase.runCollisionStartEnd(pairs);
+    //     this._broadphase.runCollisionStartEnd(pairs);
 
-        iter--;
-      }
+    //     iter--;
+    //   }
 
-      const afterNarrowphase = Date.now();
-      engine.stats.currFrame.physics.broadphase = afterBroadphase - beforeBroadphase;
-      engine.stats.currFrame.physics.narrowphase = afterNarrowphase - beforeNarrowphase;
-    }
+    //   const afterNarrowphase = Date.now();
+    //   engine.stats.currFrame.physics.broadphase = afterBroadphase - beforeBroadphase;
+    //   engine.stats.currFrame.physics.narrowphase = afterNarrowphase - beforeNarrowphase;
+    // }
 
     engine.stats.currFrame.actors.killed = this._killQueue.length + this._triggerKillQueue.length;
 
@@ -442,7 +458,7 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
       if (killed.isKilled()) {
         actorIndex = collection.indexOf(killed);
         if (actorIndex > -1) {
-          this._sortedDrawingTree.removeByComparable(killed);
+          // this._sortedDrawingTree.removeByComparable(killed);
           collection.splice(actorIndex, 1);
         }
       }
@@ -521,7 +537,7 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
       this.triggers[i].debugDraw(ctx);
     }
 
-    this._broadphase.debugDraw(ctx, 20);
+    // this._broadphase.debugDraw(ctx, 20);
 
     this.camera.debugDraw(ctx);
     this.emit('postdebugdraw', new PostDebugDrawEvent(ctx, this));
@@ -666,7 +682,7 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
    * Adds an actor to the scene, once this is done the actor will be drawn and updated.
    */
   protected _addChild(actor: Actor) {
-    this._broadphase.track(actor.body);
+    // this._broadphase.track(actor.body);
     actor.scene = this;
     if (actor instanceof Trigger) {
       this.triggers.push(actor);
@@ -674,7 +690,7 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
       this.actors.push(actor);
     }
 
-    this._sortedDrawingTree.add(actor);
+    // this._sortedDrawingTree.add(actor);
   }
 
   /**
@@ -701,7 +717,7 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
     if (!Util.contains(this.actors, actor)) {
       return;
     }
-    this._broadphase.untrack(actor.body);
+    // this._broadphase.untrack(actor.body);
     if (actor instanceof Trigger) {
       this._triggerKillQueue.push(actor);
     } else {
@@ -792,22 +808,23 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
   /**
    * Removes the given actor from the sorted drawing tree
    */
-  public cleanupDrawTree(actor: Actor) {
-    this._sortedDrawingTree.removeByComparable(actor);
+  public cleanupDrawTree(_actor: Actor) {
+    // this._sortedDrawingTree.removeByComparable(actor);
   }
 
   /**
    * Updates the given actor's position in the sorted drawing tree
    */
-  public updateDrawTree(actor: Actor) {
-    this._sortedDrawingTree.add(actor);
+  public updateDrawTree(_actor: Actor) {
+    // this._sortedDrawingTree.add(actor);
   }
 
   /**
    * Checks if an actor is in this scene's sorted draw tree
    */
-  public isActorInDrawTree(actor: Actor): boolean {
-    return this._sortedDrawingTree.find(actor);
+  public isActorInDrawTree(_actor: Actor): boolean {
+    // return this._sortedDrawingTree.find(actor);
+    return false;
   }
 
   public isCurrentScene(): boolean {
