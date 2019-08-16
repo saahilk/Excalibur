@@ -14,18 +14,20 @@ export class RigidBodySystem implements System {
   private _processor: CollisionProcessor = new DynamicTreeCollisionProcessor();
   private _bodies: Body[] = [];
 
-  constructor(public engine: Engine) {
-
-  }
+  constructor(public engine: Engine) {}
 
   notify(message: AddedSystemEntity | RemovedSystemEntity) {
     if (isAddedSystemEntity(message)) {
       addItemToArray(message.data.components[BuiltinComponentType.Body] as Body, this._bodies);
+      this._processor.track(message.data.components[BuiltinComponentType.Body] as Body);
     }
 
     if (isRemoveSystemEntity(message)) {
+      // Message no longer has the body component...
       // TODO not great
-      this._bodies = this._bodies.filter(b => b.owner);
+      const bodyToUntrack = this._bodies.filter((b) => !!b.owner)[0];
+      this._bodies = this._bodies.filter((b) => b.owner);
+      this._processor.untrack(bodyToUntrack);
     }
   }
 
