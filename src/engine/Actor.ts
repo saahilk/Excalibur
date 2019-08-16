@@ -53,6 +53,7 @@ import { TransformComponent } from './EntityComponentSystem/TransformComponent';
 import { DrawingComponent } from './EntityComponentSystem/DrawingComponent';
 import { BuiltinComponentType } from './EntityComponentSystem/ComponentTypes';
 import { DebugComponent } from './EntityComponentSystem';
+import { DrawColliderComponent } from './EntityComponentSystem/DrawColliderComponent';
 
 export function isActor(x: any): x is Actor {
   return x instanceof Actor;
@@ -548,8 +549,8 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
       const config = xOrConfig;
       xOrConfig = config.pos ? config.pos.x : config.x;
       y = config.pos ? config.pos.y : config.y;
-      width = config.width;
-      height = config.height;
+      // width = config.width;
+      // height = config.height;
 
       if (config.body) {
         shouldInitializeBody = false;
@@ -580,11 +581,16 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
     this.pos.x = <number>xOrConfig || 0;
     this.pos.y = y || 0;
 
+    const drawCollider = new DrawColliderComponent();
+
     if (color) {
       this.color = color;
+      drawCollider.color = this.color;
+
       // set default opacity of an actor to the color
       this.opacity = color.a;
     }
+    this.addComponent(drawCollider);
 
     // Build default pipeline
     this.traits.push(new Traits.TileMapCollisionDetection());
@@ -1123,12 +1129,20 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
     return 0;
   }
 
+  public set width(_val: number) {
+    // evaporate
+  }
+
   public get height() {
     const body = this.components[BuiltinComponentType.Body] as Body;
     if (body && body.collider) {
       return body.collider.localBounds.height;
     }
     return 0;
+  }
+
+  public set height(_val: number) {
+    // evaporate
   }
 
   /**
