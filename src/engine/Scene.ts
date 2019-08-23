@@ -385,8 +385,8 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
     }
 
     for (const s of this.systems) {
-      const entitiesByTypes = this.entities.queryByTypes(s.types);
-      s.update(entitiesByTypes, delta);
+      const entitiesBySystem = this.entities.queryBySystem(s);
+      s.update(entitiesBySystem, delta);
     }
 
     for (const s of this.systems) {

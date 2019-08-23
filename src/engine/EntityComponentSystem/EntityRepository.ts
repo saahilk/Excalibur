@@ -12,10 +12,10 @@ export class EntityRepository implements Observer<RemovedComponent | AddedCompon
   private _memo: { [compositeKey: string]: Entity[] } = {};
 
   public systems: System[] = [];
-  public systemIndex: { [systemId: string]: System } = {};
-  public systemToEntityIdIndex: { [systemId: string]: number[] } = {};
-  public typeIndex: { [type: string]: Entity[] } = {}; // todo entity arrays are slow, binary search?
-  public entityIndex: { [entityId: string]: Entity } = {};
+  public _systemIndex: { [systemId: string]: System } = {};
+  public _systemToEntityIdIndex: { [systemId: string]: number[] } = {};
+  public _typeIndex: { [type: string]: Entity[] } = {}; // todo entity arrays are slow, binary search?
+  public _entityIndex: { [entityId: string]: Entity } = {};
 
   private _invalidQueriesForType(type: ComponentType) {
     // Flag cached queries containing these types as dirty
@@ -27,14 +27,14 @@ export class EntityRepository implements Observer<RemovedComponent | AddedCompon
 
   private _addOrUpdateFromIndexes(entity: Entity, component: Component) {
     // Initialize if no index for type exists
-    if (!this.typeIndex[component.type]) {
-      this.typeIndex[component.type] = [];
+    if (!this._typeIndex[component.type]) {
+      this._typeIndex[component.type] = [];
     }
 
     // Only add to the index if it doesn't already exist
-    const index = this.typeIndex[component.type].indexOf(entity);
+    const index = this._typeIndex[component.type].indexOf(entity);
     if (index === -1) {
-      this.typeIndex[component.type].push(entity);
+      this._typeIndex[component.type].push(entity);
     }
 
     this._invalidQueriesForType(component.type);
@@ -43,14 +43,14 @@ export class EntityRepository implements Observer<RemovedComponent | AddedCompon
 
   private _removeFromIndexes(entity: Entity, component: Component) {
     // Initialize if no index for type exists
-    if (!this.typeIndex[component.type]) {
-      this.typeIndex[component.type] = [];
+    if (!this._typeIndex[component.type]) {
+      this._typeIndex[component.type] = [];
     }
 
     // Remove if entity is found in index
-    const index = this.typeIndex[component.type].indexOf(entity);
+    const index = this._typeIndex[component.type].indexOf(entity);
     if (index !== -1) {
-      this.typeIndex[component.type].splice(index, 1);
+      this._typeIndex[component.type].splice(index, 1);
     }
 
     this._invalidQueriesForType(component.type);
@@ -79,11 +79,11 @@ export class EntityRepository implements Observer<RemovedComponent | AddedCompon
       matches = matches && entity.types.indexOf(systemType) > -1;
     }
     if (matches) {
-      if (!this.systemToEntityIdIndex[getName(system)]) {
-        this.systemToEntityIdIndex[getName(system)] = [];
+      if (!this._systemToEntityIdIndex[getName(system)]) {
+        this._systemToEntityIdIndex[getName(system)] = [];
       }
-      if (!Util.contains(this.systemToEntityIdIndex[getName(system)], entity.id)) {
-        this.systemToEntityIdIndex[getName(system)].push(entity.id);
+      if (!Util.contains(this._systemToEntityIdIndex[getName(system)], entity.id)) {
+        this._systemToEntityIdIndex[getName(system)].push(entity.id);
 
         // Only notify add once
         if (system.notify) {
@@ -101,7 +101,7 @@ export class EntityRepository implements Observer<RemovedComponent | AddedCompon
       }
     }
     this.systems.push(system);
-    this.systemIndex[getName(system)] = system;
+    this._systemIndex[getName(system)] = system;
   }
 
   private _removeFromSystems(entity: Entity, component: Component) {
@@ -113,9 +113,9 @@ export class EntityRepository implements Observer<RemovedComponent | AddedCompon
           break;
         }
         matches = matches && [...entity.types, component.type].indexOf(systemType) > -1;
-        if (matches && Util.contains(this.systemToEntityIdIndex[getName(s)], entity.id)) {
+        if (matches && Util.contains(this._systemToEntityIdIndex[getName(s)], entity.id)) {
           // Notify remove once
-          Util.removeItemFromArray(entity.id, this.systemToEntityIdIndex[getName(s)]);
+          Util.removeItemFromArray(entity.id, this._systemToEntityIdIndex[getName(s)]);
           if (matches && s.notify) {
             s.notify(new RemovedSystemEntity(entity));
           }
@@ -132,12 +132,12 @@ export class EntityRepository implements Observer<RemovedComponent | AddedCompon
       }
     }
     Util.removeItemFromArray(system, this.systems);
-    delete this.systemIndex[getName(system)];
+    delete this._systemIndex[getName(system)];
   }
 
   public addEntity(entity: Entity): void {
     if (entity) {
-      this.entityIndex[entity.id] = entity;
+      this._entityIndex[entity.id] = entity;
       for (const c in entity.components) {
         this._addOrUpdateFromIndexes(entity, entity.components[c]);
       }
@@ -146,8 +146,8 @@ export class EntityRepository implements Observer<RemovedComponent | AddedCompon
   }
 
   public removeEntity(id: number) {
-    const entity = this.entityIndex[id];
-    delete this.entityIndex[id];
+    const entity = this._entityIndex[id];
+    delete this._entityIndex[id];
     if (entity) {
       for (const c in entity.components) {
         this._removeFromIndexes(entity, entity.components[c]);
@@ -157,7 +157,14 @@ export class EntityRepository implements Observer<RemovedComponent | AddedCompon
   }
 
   public queryById(id: number): Entity {
-    return this.entityIndex[id];
+    return this._entityIndex[id];
+  }
+
+  public queryBySystem(system: System): Entity[] {
+    if (!this._systemToEntityIdIndex[getName(system)]) {
+      this._systemToEntityIdIndex[getName(system)] = [];
+    }
+    return this._systemToEntityIdIndex[getName(system)].map((id) => this._entityIndex[id]);
   }
 
   public queryByTypes(types: ComponentType[]): Entity[] {
@@ -171,8 +178,8 @@ export class EntityRepository implements Observer<RemovedComponent | AddedCompon
     // 1. This grabs all the entities for each type in 1 big list
     let results: Entity[] = [];
     for (const type of types) {
-      if (this.typeIndex[type]) {
-        results = results.concat(this.typeIndex[type]);
+      if (this._typeIndex[type]) {
+        results = results.concat(this._typeIndex[type]);
       }
     }
     // 2. This does a distinct on the entities that match the overall [type] query
