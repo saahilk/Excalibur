@@ -210,17 +210,10 @@ export class Engine extends Class implements CanInitialize, CanUpdate, CanDraw {
    */
   public canvasElementId: string;
 
-  public static DefaultSystems = [
-    MotionSystem,
-    RigidBodySystem,
-    DrawingSystem,
-    ColliderDrawSystem,
-    DebugDrawSystem
-  ];
-
+  public static DefaultSystems = [MotionSystem, RigidBodySystem, DrawingSystem, ColliderDrawSystem, DebugDrawSystem];
 
   public buildDefaultSystems(): System[] {
-    return Engine.DefaultSystems.map(ctor => new ctor(this)); 
+    return Engine.DefaultSystems.map((ctor) => new ctor(this));
   }
 
   /**
@@ -1351,7 +1344,6 @@ O|===|* >________________>\n\
         return;
       }
       try {
-        game._requestId = raf(mainloop);
         game.emit('preframe', new PreFrameEvent(game, game.stats.prevFrame));
 
         // Get the time to calculate time-elapsed
@@ -1386,6 +1378,7 @@ O|===|* >________________>\n\
         lastTime = now;
 
         game.emit('postframe', new PostFrameEvent(game, game.stats.currFrame));
+        game._requestId = raf(mainloop);
       } catch (e) {
         window.cancelAnimationFrame(game._requestId);
         game.stop();
