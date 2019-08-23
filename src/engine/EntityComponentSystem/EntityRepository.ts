@@ -5,13 +5,17 @@ import { ComponentType } from './ComponentTypes';
 import { System, AddedSystemEntity, RemovedSystemEntity } from './System';
 import { Util } from '..';
 
+const getName = (obj: any) => obj.constructor.name;
+
 export class EntityRepository implements Observer<RemovedComponent | AddedComponent> {
   private _dirty: { [compositeKey: string]: boolean } = {};
   private _memo: { [compositeKey: string]: Entity[] } = {};
 
   public systems: System[] = [];
+  public systemIndex: { [systemId: string]: System } = {};
+  public systemToEntityIdIndex: { [systemId: string]: number[] } = {};
   public typeIndex: { [type: string]: Entity[] } = {}; // todo entity arrays are slow, binary search?
-  public entityIndex: { [id: string]: Entity } = {};
+  public entityIndex: { [entityId: string]: Entity } = {};
 
   private _invalidQueriesForType(type: ComponentType) {
     // Flag cached queries containing these types as dirty
@@ -65,12 +69,26 @@ export class EntityRepository implements Observer<RemovedComponent | AddedCompon
 
   private _addToSystems(entity: Entity) {
     for (const s of this.systems) {
-      let matches = true;
-      for (const systemType of s.types) {
-        matches = matches && entity.types.indexOf(systemType) > -1;
+      this._addEntityToSystem(entity, s);
+    }
+  }
+
+  private _addEntityToSystem(entity: Entity, system: System) {
+    let matches = true;
+    for (const systemType of system.types) {
+      matches = matches && entity.types.indexOf(systemType) > -1;
+    }
+    if (matches) {
+      if (!this.systemToEntityIdIndex[getName(system)]) {
+        this.systemToEntityIdIndex[getName(system)] = [];
       }
-      if (matches && s.notify) {
-        s.notify(new AddedSystemEntity(entity));
+      if (!Util.contains(this.systemToEntityIdIndex[getName(system)], entity.id)) {
+        this.systemToEntityIdIndex[getName(system)].push(entity.id);
+
+        // Only notify add once
+        if (system.notify) {
+          system.notify(new AddedSystemEntity(entity));
+        }
       }
     }
   }
@@ -83,6 +101,7 @@ export class EntityRepository implements Observer<RemovedComponent | AddedCompon
       }
     }
     this.systems.push(system);
+    this.systemIndex[getName(system)] = system;
   }
 
   private _removeFromSystems(entity: Entity, component: Component) {
@@ -94,9 +113,13 @@ export class EntityRepository implements Observer<RemovedComponent | AddedCompon
           break;
         }
         matches = matches && [...entity.types, component.type].indexOf(systemType) > -1;
-      }
-      if (matches && s.notify) {
-        s.notify(new RemovedSystemEntity(entity));
+        if (matches && Util.contains(this.systemToEntityIdIndex[getName(s)], entity.id)) {
+          // Notify remove once
+          Util.removeItemFromArray(entity.id, this.systemToEntityIdIndex[getName(s)]);
+          if (matches && s.notify) {
+            s.notify(new RemovedSystemEntity(entity));
+          }
+        }
       }
     }
   }
@@ -109,6 +132,7 @@ export class EntityRepository implements Observer<RemovedComponent | AddedCompon
       }
     }
     Util.removeItemFromArray(system, this.systems);
+    delete this.systemIndex[getName(system)];
   }
 
   public addEntity(entity: Entity): void {
