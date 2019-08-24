@@ -6,6 +6,7 @@ import { Body } from '../Collision/Body';
 import { DrawColliderComponent } from './DrawColliderComponent';
 import { Vector } from '../Algebra';
 import { TransformComponent, CoordPlane } from './TransformComponent';
+import { DrawingComponent } from './DrawingComponent';
 
 export class ColliderDrawSystem implements System {
   public readonly types: ComponentType[] = [BuiltinComponentType.Body, BuiltinComponentType.DrawCollider];
@@ -18,6 +19,10 @@ export class ColliderDrawSystem implements System {
   public update(entities: Entity[], _delta: number): void {
     for (const entity of entities) {
       const body = entity.components[BuiltinComponentType.Body] as Body;
+      const maybeDrawing = entity.components[BuiltinComponentType.Drawing] as DrawingComponent;
+      if (maybeDrawing && maybeDrawing.current) {
+        return;
+      }
       if (body) {
         const transform = body.transform;
         this._pushCameraTransform(transform);
