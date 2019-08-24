@@ -396,7 +396,7 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
     }
     for (const a of this.actors) {
       if (has_postupdate(a)) {
-        a._preupdate(engine, delta);
+        a._postupdate(engine, delta);
       }
     }
 
