@@ -581,16 +581,15 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
     this.pos.x = <number>xOrConfig || 0;
     this.pos.y = y || 0;
 
-    const drawCollider = new DrawColliderComponent();
-
     if (color) {
+      const drawCollider = new DrawColliderComponent();
       this.color = color;
       drawCollider.color = this.color;
 
       // set default opacity of an actor to the color
       this.opacity = color.a;
+      this.addComponent(drawCollider);
     }
-    this.addComponent(drawCollider);
 
     // Build default pipeline
     this.traits.push(new Traits.TileMapCollisionDetection());
