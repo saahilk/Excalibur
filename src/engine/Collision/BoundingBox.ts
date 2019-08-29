@@ -33,15 +33,15 @@ export class BoundingBox {
    */
   constructor(leftOrOptions: number | BoundingBoxOptions = 0, top: number = 0, right: number = 0, bottom: number = 0) {
     if (typeof leftOrOptions === 'object') {
-      this.left = leftOrOptions.left;
-      this.top = leftOrOptions.top;
-      this.right = leftOrOptions.right;
-      this.bottom = leftOrOptions.bottom;
+      this.left = leftOrOptions.left || 0;
+      this.top = leftOrOptions.top || 0;
+      this.right = leftOrOptions.right || 0;
+      this.bottom = leftOrOptions.bottom || 0;
     } else if (typeof leftOrOptions === 'number') {
-      this.left = leftOrOptions;
-      this.top = top;
-      this.right = right;
-      this.bottom = bottom;
+      this.left = leftOrOptions || 0;
+      this.top = top || 0;
+      this.right = right || 0;
+      this.bottom = bottom || 0;
     }
   }
 
