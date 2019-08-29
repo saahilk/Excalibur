@@ -33,7 +33,7 @@ export class UIActor extends Actor {
     }
     this.traits = [];
     this.traits.push(new Traits.CapturePointer());
-    this.anchor.setTo(0, 0);
+    this.anchor = Vector.Zero;
     this.body.collider.type = CollisionType.PreventCollision;
     this.body.collider.shape = Shape.Box(this.width, this.height, this.anchor);
     this.enableCapturePointer = true;

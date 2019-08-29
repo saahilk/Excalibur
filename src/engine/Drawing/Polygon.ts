@@ -143,4 +143,10 @@ export class Polygon implements Drawable {
     ctx.stroke();
     ctx.restore();
   }
+
+  public drawWithOptions(options: { ctx: CanvasRenderingContext2D; x: number; y: number; anchor?: Vector; offset?: Vector }) {
+    // todo implement
+    const { ctx, x, y } = options;
+    this.draw(ctx, x, y);
+  }
 }

@@ -309,6 +309,12 @@ export class AnimationImpl implements Drawable {
     }
   }
 
+  public drawWithOptions(options: { ctx: CanvasRenderingContext2D; x: number; y: number; anchor?: Vector; offset?: Vector }) {
+    // todo implement anchor and offset
+    const { ctx, x, y } = options;
+    this.draw(ctx, x, y);
+  }
+
   /**
    * Plays an animation at an arbitrary location in the game.
    * @param x  The x position in the game to play

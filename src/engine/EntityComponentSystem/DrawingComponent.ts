@@ -67,9 +67,14 @@ export class DrawingComponent implements Component, HasPreDraw, HasPostDraw {
   public visible: boolean = true;
 
   /**
-   * Offset to apply to all drawings in this component
+   * Offset to apply to all drawings in this component if set, if null the drawing's offset is respected
    */
-  public offset: Vector = Vector.Zero;
+  public offset: Vector | null = null;
+
+  /**
+   * Anchor to apply to all drawings in this component if set, if null the drawing's anchor is respected
+   */
+  public anchor: Vector | null = null;
 
   /**
    * Returns the currently displayed graphic, null if hidden
@@ -86,14 +91,26 @@ export class DrawingComponent implements Component, HasPreDraw, HasPostDraw {
   }
 
   /**
-   * Adds a graphic to this component
+   * Adds a graphic to this component, if the name is "default" or not specified, it will be shown by default without needing to call `show("default")`
    * @param graphic
    */
-  public add(name: string, graphic: Drawable): void {
-    this._graphics[name] = graphic;
+  public add(graphic: Drawable): Drawable;
+  public add(name: string, graphic: Drawable): Drawable;
+  public add(nameOrDrawable: string | Drawable, graphic?: Drawable): Drawable {
+    let name = 'default';
+    let graphicToSet: Drawable = null;
+    if (typeof nameOrDrawable === 'string') {
+      name = nameOrDrawable;
+      graphicToSet = graphic;
+    } else {
+      graphicToSet = nameOrDrawable;
+    }
+
+    this._graphics[name] = graphicToSet;
     if (name === 'default') {
       this.show('default');
     }
+    return graphicToSet;
   }
 
   /**

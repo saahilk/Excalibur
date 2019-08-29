@@ -64,7 +64,7 @@ export class DrawingSystem implements System {
 
       if (drawing.current) {
         drawing.current.tick(delta);
-      } 
+      }
 
       // TODO delete replace these this with a utility method
       // const preDraw = () => {
@@ -107,7 +107,7 @@ export class DrawingSystem implements System {
           // TODO handle sprite effects
 
           if (drawing.current) {
-            drawing.current.draw(this.ctx, 0, 0);
+            drawing.current.drawWithOptions({ ctx: this.ctx, x: 0, y: 0, anchor: drawing.anchor, offset: drawing.offset });
           }
 
           drawing.onPostDraw(this.ctx, delta);

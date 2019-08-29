@@ -80,4 +80,10 @@ export interface Drawable extends HasEffects {
    * @param y    The y coordinate of where to draw
    */
   draw(ctx: CanvasRenderingContext2D, x: number, y: number): void;
+
+  /**
+   * Draws the sprite with custom options to override internals
+   * @param options
+   */
+  drawWithOptions(options: { ctx: CanvasRenderingContext2D; x: number; y: number; anchor?: Vector; offset?: Vector }): void;
 }

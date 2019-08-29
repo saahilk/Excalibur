@@ -372,8 +372,9 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
    */
   public get anchor() {
     const drawing = this.components[BuiltinComponentType.Drawing] as DrawingComponent;
-    if (drawing && drawing.current) {
-      return drawing.current.anchor;
+    if (drawing) {
+      // todo not good
+      return drawing.anchor || Vector.Half;
     }
 
     return Vector.Half;
@@ -381,8 +382,8 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
 
   public set anchor(anchor: Vector) {
     const drawing = this.components[BuiltinComponentType.Drawing] as DrawingComponent;
-    if (drawing && drawing.current) {
-      drawing.current.anchor = anchor;
+    if (drawing) {
+      drawing.anchor = anchor;
     }
   }
 
@@ -996,10 +997,10 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
    */
   public setDrawing(key: number): void;
   @obsolete()
-  public setDrawing(key: any): void {
+  public setDrawing(key: string | number): void {
     const drawing = this.components[BuiltinComponentType.Drawing] as DrawingComponent;
     if (drawing) {
-      drawing.show(key);
+      drawing.show(key.toString());
     }
   }
 
@@ -1016,13 +1017,13 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
    * @param key     The key to associate with a drawing for this actor
    * @param drawing This can be an [[Animation]], [[Sprite]], or [[Polygon]].
    */
-  public addDrawing(key: any, drawing: Drawable): void;
+  public addDrawing(key: string | number, drawing: Drawable): void;
   @obsolete()
   public addDrawing(): void {
     const drawing = this.components[BuiltinComponentType.Drawing] as DrawingComponent;
     if (drawing) {
       if (arguments.length === 2) {
-        drawing.add(<string>arguments[0], arguments[1]);
+        drawing.add(<string>arguments[0].toString(), arguments[1]);
       } else {
         if (arguments[0] instanceof Sprite) {
           drawing.add('default', arguments[0]);
@@ -1422,9 +1423,9 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
     this.actionQueue.update(delta);
 
     // Update color only opacity
-    if (this.color) {
-      this.color.a = this.opacity;
-    }
+    // if (this.color) {
+    //   this.color.a = this.opacity;
+    // }
 
     // calculate changing opacity
     if (this.previousOpacity !== this.opacity) {

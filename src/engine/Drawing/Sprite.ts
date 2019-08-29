@@ -345,14 +345,24 @@ export class SpriteImpl implements Drawable {
    * @param y    The y coordinate of where to draw
    */
   public draw(ctx: CanvasRenderingContext2D, x: number, y: number) {
+    this.drawWithOptions({ ctx, x, y });
+  }
+
+  public drawWithOptions(options: { ctx: CanvasRenderingContext2D; x: number; y: number; anchor?: Vector; offset?: Vector }) {
+    const { ctx, x, y, anchor, offset } = {
+      ...options,
+      anchor: options.anchor || this.anchor,
+      offset: options.offset || this.offset
+    };
+
     if (this._dirtyEffect) {
       this._applyEffects();
     }
 
     // calculating current dimensions
     ctx.save();
-    const xpoint = this.drawWidth * this.anchor.x + this.offset.x;
-    const ypoint = this.drawHeight * this.anchor.y + this.offset.y;
+    const xpoint = this.drawWidth * anchor.x + offset.x;
+    const ypoint = this.drawHeight * anchor.y + offset.y;
     ctx.translate(x, y);
     ctx.rotate(this.rotation);
 
