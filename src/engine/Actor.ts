@@ -550,8 +550,8 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
       const config = xOrConfig;
       xOrConfig = config.pos ? config.pos.x : config.x;
       y = config.pos ? config.pos.y : config.y;
-      // width = config.width;
-      // height = config.height;
+      width = config.width;
+      height = config.height;
 
       if (config.body) {
         shouldInitializeBody = false;
