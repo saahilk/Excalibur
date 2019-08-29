@@ -31,7 +31,7 @@ export function isRemovedComponent(x: Message<EntityComponent>): x is RemovedCom
 
 export type ComponentMap = { [type: string]: Component };
 
-export class Entity extends Class implements OnInitialize, OnPreUpdate, OnPostUpdate  {
+export class Entity extends Class implements OnInitialize, OnPreUpdate, OnPostUpdate {
   private static _ID = 0;
 
   /**
@@ -48,13 +48,13 @@ export class Entity extends Class implements OnInitialize, OnPreUpdate, OnPostUp
 
   private _handleChanges = {
     defineProperty: (obj: any, prop: any, descriptor: PropertyDescriptor) => {
+      obj[prop] = descriptor.value;
       this.changes.notifyAll(
         new AddedComponent({
           component: descriptor.value as Component,
           entity: this
         })
       );
-      obj[prop] = descriptor.value;
       return true;
     },
     deleteProperty: (obj: any, prop: any) => {
@@ -127,9 +127,8 @@ export class Entity extends Class implements OnInitialize, OnPreUpdate, OnPostUp
     return !!this.components[type];
   }
 
-
   private _isInitialized = false;
-  
+
   /**
    * Gets whether the actor is Initialized
    */
@@ -184,7 +183,7 @@ export class Entity extends Class implements OnInitialize, OnPreUpdate, OnPostUp
     // Override me
   }
 
-   /**
+  /**
    * Safe to override onPreUpdate lifecycle event handler. Synonymous with `.on('preupdate', (evt) =>{...})`
    *
    * `onPreUpdate` is called directly before an entity is updated.
