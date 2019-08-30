@@ -203,7 +203,8 @@ export class TileMapImpl extends Class {
           if (ss) {
             const sprite = ss.getSprite(cs[csi].spriteId);
             if (sprite) {
-              sprite.draw(ctx, x * this.cellWidth, y * this.cellHeight);
+              const zero = Vector.Zero;
+              sprite.drawWithOptions({ ctx, x: x * this.cellWidth, y: y * this.cellHeight, anchor: zero });
             } else {
               this.logger.warn('Sprite does not exist for id', cs[csi].spriteId, 'in sprite sheet', cs[csi].spriteSheetKey, sprite, ss);
             }
