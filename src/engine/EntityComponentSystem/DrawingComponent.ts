@@ -116,8 +116,8 @@ export class DrawingComponent implements Component, HasPreDraw, HasPostDraw {
   /**
    * Show a graphic by name, returns a promise that resolves when graphic has finished displaying
    */
-  public show(graphicName: string): Promise<Drawable> {
-    this._currentDrawing = this.graphics[graphicName];
+  public show(graphicName: string | number): Promise<Drawable> {
+    this._currentDrawing = this.graphics[graphicName.toString()];
 
     // Todo does this make sense for looping animations
     // how do we know this??

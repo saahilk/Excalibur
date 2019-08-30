@@ -368,12 +368,12 @@ export class SpriteImpl implements Drawable {
 
     // todo cache flipped sprites
     if (this.flipHorizontal) {
-      ctx.translate(this.drawWidth, 0);
+      //not needed? ctx.translate(this.drawWidth, 0);
       ctx.scale(-1, 1);
     }
 
     if (this.flipVertical) {
-      ctx.translate(0, this.drawHeight);
+      // not needed? ctx.translate(0, this.drawHeight);
       ctx.scale(1, -1);
     }
 
