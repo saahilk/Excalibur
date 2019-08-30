@@ -29,7 +29,7 @@ export interface BodyOptions {
  * Body describes all the physical properties pos, vel, acc, rotation, angular velocity
  */
 export class Body implements Component, Clonable<Body> {
-  public readonly dependencies: ComponentType[] = [BuiltinComponentType.Transform];
+  public readonly dependencies = [TransformComponent];
   public readonly type: ComponentType = BuiltinComponentType.Body;
   public transform: TransformComponent;
   public owner: Entity;

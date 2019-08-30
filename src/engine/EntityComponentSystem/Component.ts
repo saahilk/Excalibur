@@ -1,6 +1,10 @@
 import { ComponentType } from './ComponentTypes';
 import { Entity } from './Entity';
 
+export interface ComponentCtor {
+  new (): Component;
+}
+
 /**
  * Components are containers for state in Excalibur, the are meant to convey capabilities that an Entity posesses
  */
@@ -8,8 +12,10 @@ export interface Component {
   /**
    * Optionally list any component types this component depends on
    * If the owner entity does not have these components, new components will be added to the entity
+   *
+   * Only components with zero-arg constructors are supported as automatic component dependencies
    */
-  readonly dependencies?: ComponentType[];
+  readonly dependencies?: ComponentCtor[];
 
   /**
    * Type of this component, must be a unique type among component types in you game.

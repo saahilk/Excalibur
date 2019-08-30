@@ -87,7 +87,7 @@ export class Entity extends Class implements OnInitialize, OnPreUpdate, OnPostUp
     return newEntity;
   }
 
-  public addComponent(component: Component | Entity) {
+  public addComponent(component: Component | Entity, force: boolean = false) {
     // If you use an entity as a "prefab" or template
     if (component instanceof Entity) {
       for (const c in component.components) {
@@ -95,6 +95,23 @@ export class Entity extends Class implements OnInitialize, OnPreUpdate, OnPostUp
       }
       // Normal component case
     } else {
+      // if component already exists, skip if not forced
+      if (this.components[component.type] && !force) {
+        return;
+      }
+
+      // Remove existing component type if exists when forced
+      if (this.components[component.type] && force) {
+        this.removeComponent(component);
+      }
+
+      // todo circular dependencies will be a problem
+      if (component.dependencies && component.dependencies.length) {
+        for (const ctor of component.dependencies) {
+          this.addComponent(new ctor());
+        }
+      }
+
       component.owner = this;
       this.components[component.type] = component;
       if (component.onAdd) {

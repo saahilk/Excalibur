@@ -7,7 +7,6 @@ export * from './EntityRepository';
 
 export * from './TransformComponent';
 export * from './DrawingComponent';
-export * from './BodyComponent';
 export * from './OffscreenComponent';
 export * from './DebugComponent';
 
