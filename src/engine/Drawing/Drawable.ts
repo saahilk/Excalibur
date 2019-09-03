@@ -85,5 +85,12 @@ export interface Drawable extends HasEffects {
    * Draws the sprite with custom options to override internals
    * @param options
    */
-  drawWithOptions(options: { ctx: CanvasRenderingContext2D; x: number; y: number; anchor?: Vector; offset?: Vector }): void;
+  drawWithOptions(options: {
+    ctx: CanvasRenderingContext2D;
+    x: number;
+    y: number;
+    anchor?: Vector;
+    offset?: Vector;
+    opacity?: number;
+  }): void;
 }

@@ -14,6 +14,7 @@ import { BoundingBox } from '../Collision/Index';
  */
 export class SpriteImpl implements Drawable {
   private _texture: Texture;
+  private _opacity: number;
 
   public x: number = 0;
   public y: number = 0;
@@ -157,7 +158,8 @@ export class SpriteImpl implements Drawable {
    * Applies the [[Opacity]] effect to a sprite, setting the alpha of all pixels to a given value
    */
   public opacity(value: number) {
-    this.addEffect(new Effects.Opacity(value));
+    // this.addEffect(new Effects.Opacity(value));
+    this._opacity = value;
   }
 
   /**
@@ -348,11 +350,19 @@ export class SpriteImpl implements Drawable {
     this.drawWithOptions({ ctx, x, y });
   }
 
-  public drawWithOptions(options: { ctx: CanvasRenderingContext2D; x: number; y: number; anchor?: Vector; offset?: Vector }) {
-    const { ctx, x, y, anchor, offset } = {
+  public drawWithOptions(options: {
+    ctx: CanvasRenderingContext2D;
+    x: number;
+    y: number;
+    anchor?: Vector;
+    offset?: Vector;
+    opacity?: number;
+  }) {
+    const { ctx, x, y, anchor, offset, opacity } = {
       ...options,
       anchor: options.anchor || this.anchor,
-      offset: options.offset || this.offset
+      offset: options.offset || this.offset,
+      opacity: options.opacity !== null || options.opacity !== undefined ? options.opacity : this._opacity
     };
 
     if (this._dirtyEffect) {
@@ -376,8 +386,10 @@ export class SpriteImpl implements Drawable {
       // not needed? ctx.translate(0, this.drawHeight);
       ctx.scale(1, -1);
     }
-
+    const oldAlpha = ctx.globalAlpha;
+    ctx.globalAlpha = opacity;
     ctx.drawImage(this._spriteCanvas, 0, 0, this.width, this.height, -xpoint, -ypoint, this.drawWidth, this.drawHeight);
+    ctx.globalAlpha = oldAlpha;
 
     ctx.restore();
   }

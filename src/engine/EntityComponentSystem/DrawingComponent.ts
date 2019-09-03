@@ -67,14 +67,19 @@ export class DrawingComponent implements Component, HasPreDraw, HasPostDraw {
   public visible: boolean = true;
 
   /**
+   * Sets or gets wither all drawings should have an opacity, if not set drawings individual opacity is respected
+   */
+  public opacity?: number | null = null;
+
+  /**
    * Offset to apply to all drawings in this component if set, if null the drawing's offset is respected
    */
-  public offset: Vector | null = null;
+  public offset?: Vector | null = null;
 
   /**
    * Anchor to apply to all drawings in this component if set, if null the drawing's anchor is respected
    */
-  public anchor: Vector | null = null;
+  public anchor?: Vector | null = null;
 
   /**
    * Returns the currently displayed graphic, null if hidden

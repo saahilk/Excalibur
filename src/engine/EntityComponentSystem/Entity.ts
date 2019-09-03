@@ -40,6 +40,11 @@ export class Entity extends Class implements OnInitialize, OnPreUpdate, OnPostUp
   public id: number = Entity._ID++;
 
   /**
+   * Whether this entity is active, if set to false it will be reclaimed
+   */
+  public active: boolean = true;
+
+  /**
    * The types of the components on the Entity
    */
   public get types(): ComponentType[] {

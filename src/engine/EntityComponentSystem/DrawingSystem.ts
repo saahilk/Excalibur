@@ -107,7 +107,14 @@ export class DrawingSystem implements System {
           // TODO handle sprite effects
 
           if (drawing.current) {
-            drawing.current.drawWithOptions({ ctx: this.ctx, x: 0, y: 0, anchor: drawing.anchor, offset: drawing.offset });
+            drawing.current.drawWithOptions({
+              ctx: this.ctx,
+              x: 0,
+              y: 0,
+              anchor: drawing.anchor,
+              offset: drawing.offset,
+              opacity: drawing.opacity
+            });
           }
 
           drawing.onPostDraw(this.ctx, delta);
