@@ -1,9 +1,10 @@
 import * as Actions from './Action';
 import { RotationType } from './RotationType';
 
-import { Actor } from '../Actor';
 import { Promise } from '../Promises';
 import { EasingFunction, EasingFunctions } from '../Util/EasingFunctions';
+import { BuiltinComponentType, Entity } from '../EntityComponentSystem';
+import { ActionComponent } from '../EntityComponentSystem/ActionComponent';
 
 /**
  * The fluent Action API allows you to perform "actions" on
@@ -14,17 +15,19 @@ import { EasingFunction, EasingFunctions } from '../Util/EasingFunctions';
  * [[include:Actions.md]]
  */
 export class ActionContext {
-  private _actors: Actor[] = [];
-  private _queues: Actions.ActionQueue[] = [];
+  protected _actors: Entity[] = [];
+  protected _queues: Actions.ActionQueue[] = [];
 
   constructor();
-  constructor(actor: Actor);
-  constructor(actors: Actor[]);
+  constructor(actor: Entity);
+  constructor(actors: Entity[]);
   constructor() {
     if (arguments !== null) {
       this._actors = Array.prototype.slice.call(arguments, 0);
       this._queues = this._actors.map((a) => {
-        return a.actionQueue;
+        const actions = a.components[BuiltinComponentType.Action] as ActionComponent;
+        return actions.queue;
+        // return a.actionQueue;
       });
     }
   }
@@ -39,18 +42,24 @@ export class ActionContext {
     }
   }
 
-  public addActorToContext(actor: Actor) {
+  public addActorToContext(actor: Entity) {
     this._actors.push(actor);
     // if we run into problems replace the line below with:
-    this._queues.push(actor.actionQueue);
+    const actions = actor.components[BuiltinComponentType.Action] as ActionComponent;
+    this._queues.push(actions.queue);
   }
 
-  public removeActorFromContext(actor: Actor) {
+  public removeActorFromContext(actor: Entity) {
     const index = this._actors.indexOf(actor);
     if (index > -1) {
       this._actors.splice(index, 1);
       this._queues.splice(index, 1);
     }
+  }
+
+  public clearContext() {
+    this._actors = [];
+    this._queues = [];
   }
 
   /**
@@ -223,7 +232,8 @@ export class ActionContext {
     }
     const len = this._queues.length;
     for (let i = 0; i < len; i++) {
-      this._queues[i].add(new Actions.Repeat(this._actors[i], times, this._actors[i].actionQueue.getActions()));
+      const actions = this._actors[i].components[BuiltinComponentType.Action] as ActionComponent;
+      this._queues[i].add(new Actions.Repeat(this._actors[i], times, actions.queue.getActions()));
     }
 
     return this;
@@ -237,7 +247,8 @@ export class ActionContext {
   public repeatForever(): ActionContext {
     const len = this._queues.length;
     for (let i = 0; i < len; i++) {
-      this._queues[i].add(new Actions.RepeatForever(this._actors[i], this._actors[i].actionQueue.getActions()));
+      const actions = this._actors[i].components[BuiltinComponentType.Action] as ActionComponent;
+      this._queues[i].add(new Actions.RepeatForever(this._actors[i], actions.queue.getActions()));
     }
     return this;
   }
@@ -247,7 +258,7 @@ export class ActionContext {
    * @param actor           The actor to follow
    * @param followDistance  The distance to maintain when following, if not specified the actor will follow at the current distance.
    */
-  public follow(actor: Actor, followDistance?: number): ActionContext {
+  public follow(actor: Entity, followDistance?: number): ActionContext {
     const len = this._queues.length;
     for (let i = 0; i < len; i++) {
       if (followDistance === undefined) {
@@ -265,7 +276,7 @@ export class ActionContext {
    * @param actor  The actor to meet
    * @param speed  The speed in pixels per second to move, if not specified it will match the speed of the other actor
    */
-  public meet(actor: Actor, speed?: number): ActionContext {
+  public meet(actor: Entity, speed?: number): ActionContext {
     const len = this._queues.length;
     for (let i = 0; i < len; i++) {
       if (speed === undefined) {

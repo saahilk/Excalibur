@@ -30,7 +30,6 @@ import { Drawable } from './Drawing/Drawable';
 import { CanInitialize, CanUpdate, CanDraw, CanBeKilled } from './Interfaces/LifecycleEvents';
 import { Scene } from './Scene';
 import { Logger } from './Util/Log';
-import { ActionContext } from './Actions/ActionContext';
 import { ActionQueue } from './Actions/Action';
 import { Vector } from './Algebra';
 import { CollisionShape } from './Collision/CollisionShape';
@@ -54,6 +53,7 @@ import { DrawingComponent } from './EntityComponentSystem/DrawingComponent';
 import { BuiltinComponentType } from './EntityComponentSystem/ComponentTypes';
 import { DebugComponent } from './EntityComponentSystem';
 import { DrawColliderComponent } from './EntityComponentSystem/DrawColliderComponent';
+import { ActionComponent } from './EntityComponentSystem/ActionComponent';
 
 export function isActor(x: any): x is Actor {
   return x instanceof Actor;
@@ -430,7 +430,7 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
   /**
    * [[ActionContext|Action context]] of the actor. Useful for scripting actor behavior.
    */
-  public actions: ActionContext;
+  public actions: ActionComponent;
 
   /**
    * Convenience reference to the global logger
@@ -598,8 +598,8 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
     this.traits.push(new Traits.CapturePointer());
 
     // Build the action queue
-    this.actionQueue = new ActionQueue(this);
-    this.actions = new ActionContext(this);
+    this.actions = new ActionComponent();
+    this.addComponent(this.actions);
   }
 
   /**

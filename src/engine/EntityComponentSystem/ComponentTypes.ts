@@ -5,6 +5,7 @@ export enum BuiltinComponentType {
   Transform = 'transform',
   Drawing = 'drawing',
   DrawCollider = 'drawcollider',
+  Action = 'action',
   Offscreen = 'offscreen',
   Body = 'body',
   Debug = 'debug'
