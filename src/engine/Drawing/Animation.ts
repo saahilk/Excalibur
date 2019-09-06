@@ -3,7 +3,7 @@ import { AnimationArgs } from '../Drawing/Animation';
 import * as Effects from './SpriteEffects';
 import { Color } from './Color';
 
-import { Drawable } from './Drawable';
+import { Drawable, DrawOptions } from './Drawable';
 import { Vector } from '../Algebra';
 import { Engine } from '../Engine';
 import * as Util from '../Util/Util';
@@ -284,18 +284,22 @@ export class AnimationImpl implements Drawable {
   }
 
   public draw(ctx: CanvasRenderingContext2D, x: number, y: number) {
+    this.drawWithOptions({ ctx, x, y });
+  }
+
+  public drawWithOptions(options: DrawOptions) {
     this._updateValues();
     let currSprite: Sprite;
     if (this.currentFrame < this.sprites.length) {
       currSprite = this.sprites[this.currentFrame];
       currSprite.flipVertical = this.flipVertical;
       currSprite.flipHorizontal = this.flipHorizontal;
-      currSprite.draw(ctx, x, y);
+      currSprite.drawWithOptions(options);
     }
 
     if (this.freezeFrame !== -1 && this.currentFrame >= this.sprites.length) {
       currSprite = this.sprites[Util.clamp(this.freezeFrame, 0, this.sprites.length - 1)];
-      currSprite.draw(ctx, x, y);
+      currSprite.drawWithOptions(options);
     }
 
     // add the calculated width
@@ -307,12 +311,6 @@ export class AnimationImpl implements Drawable {
     if (this.isDone && this._resolveDonePlaying) {
       this._resolveDonePlaying(this);
     }
-  }
-
-  public drawWithOptions(options: { ctx: CanvasRenderingContext2D; x: number; y: number; anchor?: Vector; offset?: Vector }) {
-    // todo implement anchor and offset
-    const { ctx, x, y } = options;
-    this.draw(ctx, x, y);
   }
 
   /**

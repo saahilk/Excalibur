@@ -45,6 +45,14 @@ export class BoundingBox {
     }
   }
 
+  public get topLeft() {
+    return new Vector(this.left, this.top);
+  }
+
+  public get bottomRight() {
+    return new Vector(this.right, this.bottom);
+  }
+
   /**
    * Given bounding box A & B, returns the side relative to A when intersection is performed.
    * @param intersection Intersection vector between 2 bounding boxes

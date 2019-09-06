@@ -419,7 +419,22 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
    * The opacity of an actor. Passing in a color in the [[constructor]] will use the
    * color's opacity.
    */
-  public opacity: number = 1;
+  public get opacity(): number {
+    const drawing = this.components[BuiltinComponentType.Drawing] as DrawingComponent;
+    if (drawing) {
+      return drawing.opacity === null ? 1 : drawing.opacity;
+    }
+
+    return 1;
+  }
+
+  public set opacity(opacity: number) {
+    const drawing = this.components[BuiltinComponentType.Drawing] as DrawingComponent;
+    if (drawing) {
+      drawing.opacity = opacity;
+    }
+  }
+
   public previousOpacity: number = 1;
 
   /**
@@ -1428,11 +1443,11 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
     // }
 
     // calculate changing opacity
-    if (this.previousOpacity !== this.opacity) {
-      this.previousOpacity = this.opacity;
-      this._opacityFx.opacity = this.opacity;
-      // this._effectsDirty = true;
-    }
+    // if (this.previousOpacity !== this.opacity) {
+    // this.previousOpacity = this.opacity;
+    // this._opacityFx.opacity = this.opacity;
+    // this._effectsDirty = true;
+    // }
 
     // capture old transform
     this.body.captureOldTransform();

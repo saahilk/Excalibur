@@ -2,6 +2,15 @@ import { Vector } from '../Algebra';
 import { HasEffects } from './HasEffects';
 import { BoundingBox } from '../Collision/Index';
 
+export interface DrawOptions {
+  ctx: CanvasRenderingContext2D;
+  x: number;
+  y: number;
+  anchor?: Vector;
+  offset?: Vector;
+  opacity?: number;
+}
+
 /**
  * Interface for implementing anything in Excalibur that can be drawn to the screen.
  */
@@ -59,7 +68,7 @@ export interface Drawable extends HasEffects {
   loaded: boolean;
 
   /**
-   * Gets the bounds for the
+   * Gets the bounds for the drawable
    */
   localBounds: BoundingBox;
 
@@ -85,12 +94,5 @@ export interface Drawable extends HasEffects {
    * Draws the sprite with custom options to override internals
    * @param options
    */
-  drawWithOptions(options: {
-    ctx: CanvasRenderingContext2D;
-    x: number;
-    y: number;
-    anchor?: Vector;
-    offset?: Vector;
-    opacity?: number;
-  }): void;
+  drawWithOptions(options: DrawOptions): void;
 }

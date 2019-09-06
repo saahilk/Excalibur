@@ -7,6 +7,7 @@ import { DrawingComponent } from './DrawingComponent';
 import { PreDrawEvent, PostDrawEvent, ExitViewPortEvent, EnterViewPortEvent } from '../Events';
 import { SortedList } from '../Util/SortedList';
 import { OffscreenComponent } from './OffscreenComponent';
+import { Vector } from '../Algebra';
 
 export class DrawingSystem implements System {
   readonly types: ComponentType[] = [BuiltinComponentType.Transform, BuiltinComponentType.Drawing];
@@ -66,32 +67,6 @@ export class DrawingSystem implements System {
         drawing.current.tick(delta);
       }
 
-      // TODO delete replace these this with a utility method
-      // const preDraw = () => {
-      //   if (hasPreDraw(entity)) {
-      //     this.ctx.save();
-      //     this.ctx.translate(
-      //       -drawing.width * drawing.noDrawingAnchor.x + drawing.offset.x,
-      //       -drawing.height * drawing.noDrawingAnchor.y + drawing.offset.y
-      //     );
-
-      //     entity.onPreDraw(this.ctx, delta);
-      //     this.ctx.restore();
-      //   }
-      // };
-
-      // const postDraw = () => {
-      //   if (hasPostDraw(entity)) {
-      //     this.ctx.save();
-      //     this.ctx.translate(
-      //       -drawing.width * drawing.noDrawingAnchor.x + drawing.offset.x,
-      //       -drawing.height * drawing.noDrawingAnchor.y + drawing.offset.y
-      //     );
-      //     entity.onPostDraw(this.ctx, delta);
-      //     this.ctx.restore();
-      //   }
-      // };
-
       if (drawing.current && drawing.current.loaded && !entity.components[BuiltinComponentType.Offscreen]) {
         // Setup transform
         this.ctx.save();
@@ -103,8 +78,6 @@ export class DrawingSystem implements System {
         // preDraw();
         if (drawing.current && drawing.visible) {
           drawing.onPreDraw(this.ctx, delta);
-
-          // TODO handle sprite effects
 
           if (drawing.current) {
             drawing.current.drawWithOptions({
@@ -174,6 +147,7 @@ export class DrawingSystem implements System {
           .scale(transform.scale)
           .rotate(transform.rotation)
           .translate(transform.pos)
+          .translate(transform.coordPlane === CoordPlane.Screen ? this.engine.currentScene.camera.viewport.topLeft : Vector.Zero)
       );
 
       // Add offscreen component & emit events

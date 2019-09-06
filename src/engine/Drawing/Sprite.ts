@@ -1,7 +1,7 @@
 import * as Effects from './SpriteEffects';
 import { Color } from './Color';
 
-import { Drawable } from './Drawable';
+import { Drawable, DrawOptions } from './Drawable';
 import { Texture } from '../Resources/Texture';
 import { Vector } from '../Algebra';
 import { Logger } from '../Util/Log';
@@ -350,14 +350,7 @@ export class SpriteImpl implements Drawable {
     this.drawWithOptions({ ctx, x, y });
   }
 
-  public drawWithOptions(options: {
-    ctx: CanvasRenderingContext2D;
-    x: number;
-    y: number;
-    anchor?: Vector;
-    offset?: Vector;
-    opacity?: number;
-  }) {
+  public drawWithOptions(options: DrawOptions) {
     const { ctx, x, y, anchor, offset, opacity } = {
       ...options,
       anchor: options.anchor || this.anchor,
