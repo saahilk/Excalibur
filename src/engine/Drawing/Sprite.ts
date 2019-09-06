@@ -387,7 +387,7 @@ export class SpriteImpl implements Drawable {
       ctx.scale(1, -1);
     }
     const oldAlpha = ctx.globalAlpha;
-    ctx.globalAlpha = opacity;
+    ctx.globalAlpha = opacity === null ? 1 : opacity;
     ctx.drawImage(this._spriteCanvas, 0, 0, this.width, this.height, -xpoint, -ypoint, this.drawWidth, this.drawHeight);
     ctx.globalAlpha = oldAlpha;
 
