@@ -58,9 +58,11 @@ export class DynamicTreeCollisionProcessor implements CollisionProcessor {
     const seconds = delta / 1000;
 
     // Retrieve the list of potential colliders, exclude killed, prevented, and self
-    const potentialColliders = targets.map((t) => t.collider).filter((other) => {
-      return other.active && other.type !== CollisionType.PreventCollision;
-    });
+    const potentialColliders = targets
+      .map((t) => t.collider)
+      .filter((other) => {
+        return other.active && other.type !== CollisionType.PreventCollision;
+      });
 
     // clear old list of collision pairs
     this._collisionPairCache = [];
@@ -233,7 +235,7 @@ export class DynamicTreeCollisionProcessor implements CollisionProcessor {
     const len = targets.length;
 
     for (let i = 0; i < len; i++) {
-      if (this._dynamicCollisionTree.updateBody(targets[i])) {
+      if (targets[i].transform.changed && this._dynamicCollisionTree.updateBody(targets[i])) {
         updated++;
       }
     }

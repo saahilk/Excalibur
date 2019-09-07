@@ -35,6 +35,11 @@ export class RigidBodySystem implements System {
     // Run the broadphase and narrowphase
     if (Physics.enabled) {
       const beforeBroadphase = Date.now();
+      for (const b of this._bodies) {
+        if (b.transform.changed) {
+          b.collider.update();
+        }
+      }
       this._processor.update(this._bodies, delta);
       let pairs = this._processor.broadphase(this._bodies, delta, this.engine.stats.currFrame);
       const afterBroadphase = Date.now();
