@@ -581,6 +581,12 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
   public add(actor: Actor): void;
 
   /**
+   * Adds an entity to the scene,
+   * @param entity
+   */
+  public add(entity: Entity): void;
+
+  /**
    * Adds a [[UIActor]] to the scene.
    * @param uiActor  The UIActor to add to the current scene
    */
@@ -636,6 +642,12 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
    * @param actor  The actor to remove from the current scene.
    */
   public remove(actor: Actor): void;
+
+  /**
+   * Removes an entity from the scene, it will no longer be drawn or updated.
+   * @param entity  The entity to remove from the current scene.
+   */
+  public remove(entity: Entity): void;
 
   /**
    * Removes a [[UIActor]] to the scene, it will no longer be drawn or updated

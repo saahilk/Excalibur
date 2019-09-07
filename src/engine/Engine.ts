@@ -47,6 +47,7 @@ import { ColliderDrawSystem } from './EntityComponentSystem/ColliderDrawSystem';
 import { RigidBodySystem } from './EntityComponentSystem/RigidBodySystem';
 import { MotionSystem } from './EntityComponentSystem/MotionSystem';
 import { ActionSystem } from './EntityComponentSystem/ActionSystem';
+import { Entity } from './EntityComponentSystem/Entity';
 
 /**
  * Enum representing the different display modes available to Excalibur
@@ -753,6 +754,17 @@ O|===|* >________________>\n\
   public add(actor: Actor): void;
 
   /**
+   * Adds an entity to the [[currentScene]] of the game. This is synonymous
+   * to calling `engine.currentScene.add(entity)`.
+   *
+   * Entitys can only be updated/drawn if they are a member of a scene, and only
+   * the [[currentScene]] may be drawn or updated.
+   *
+   * @param actor  The actor to add to the [[currentScene]]
+   */
+  public add(entity: Entity): void;
+
+  /**
    * Adds a [[UIActor]] to the [[currentScene]] of the game,
    * UIActors do not participate in collisions, instead the
    * remain in the same place on the screen.
@@ -760,6 +772,11 @@ O|===|* >________________>\n\
    */
   public add(uiActor: UIActor): void;
   public add(entity: any): void {
+    if (entity instanceof Entity) {
+      this._addChild(entity);
+      return;
+    }
+
     if (entity instanceof UIActor) {
       this.currentScene.addUIActor(entity);
       return;
@@ -801,18 +818,32 @@ O|===|* >________________>\n\
   public remove(tileMap: TileMap): void;
   /**
    * Removes an actor from the [[currentScene]] of the game. This is synonymous
-   * to calling `engine.currentScene.removeChild(actor)`.
+   * to calling `engine.currentScene.remove(actor)`.
    * Actors that are removed from a scene will no longer be drawn or updated.
    *
    * @param actor  The actor to remove from the [[currentScene]].
    */
   public remove(actor: Actor): void;
+
+  /**
+   * Removes an entity from the [[currentScene]] of the game. This is synonymous
+   * to calling `engine.currentScene.remove(entity)`.
+   * Entities that are removed from a scene will no longer be drawn or updated.
+   *
+   * @param entity  The entity to remove from the [[currentScene]].
+   */
+  public remove(entity: Entity): void;
   /**
    * Removes a [[UIActor]] to the scene, it will no longer be drawn or updated
    * @param uiActor  The UIActor to remove from the [[currentScene]]
    */
   public remove(uiActor: UIActor): void;
   public remove(entity: any): void {
+    if (entity instanceof Entity) {
+      this._removeChild(entity);
+      return;
+    }
+
     if (entity instanceof UIActor) {
       this.currentScene.removeUIActor(entity);
       return;
@@ -846,7 +877,7 @@ O|===|* >________________>\n\
    *
    * @param actor  The actor to add to the [[currentScene]]
    */
-  protected _addChild(actor: Actor) {
+  protected _addChild(actor: Entity) {
     this.currentScene.add(actor);
   }
 
@@ -857,7 +888,7 @@ O|===|* >________________>\n\
    *
    * @param actor  The actor to remove from the [[currentScene]].
    */
-  protected _removeChild(actor: Actor) {
+  protected _removeChild(actor: Entity) {
     this.currentScene.remove(actor);
   }
 
