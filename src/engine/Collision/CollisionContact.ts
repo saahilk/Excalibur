@@ -133,7 +133,7 @@ export class CollisionContact {
 
     // Relative velocity in linear terms
     // Angular to linear velocity formula -> omega = v/r
-    const rv = bodyB.vel.add(rb.cross(-bodyB.rx)).sub(bodyA.vel.sub(ra.cross(bodyA.rx)));
+    const rv = bodyB.vel.add(rb.cross(-bodyB.angularVelocity)).sub(bodyA.vel.sub(ra.cross(bodyA.angularVelocity)));
     const rvNormal = rv.dot(normal);
     const rvTangent = rv.dot(tangent);
 
@@ -156,13 +156,13 @@ export class CollisionContact {
     if (this.colliderA.type === CollisionType.Fixed) {
       bodyB.vel = bodyB.vel.add(normal.scale(impulse * invMassB));
       if (Physics.allowRigidBodyRotation) {
-        bodyB.rx -= impulse * invMoiB * -rb.cross(normal);
+        bodyB.angularVelocity -= impulse * invMoiB * -rb.cross(normal);
       }
       bodyB.addMtv(mtv);
     } else if (this.colliderB.type === CollisionType.Fixed) {
       bodyA.vel = bodyA.vel.sub(normal.scale(impulse * invMassA));
       if (Physics.allowRigidBodyRotation) {
-        bodyA.rx += impulse * invMoiA * -ra.cross(normal);
+        bodyA.angularVelocity += impulse * invMoiA * -ra.cross(normal);
       }
       bodyA.addMtv(mtv.negate());
     } else {
@@ -170,8 +170,8 @@ export class CollisionContact {
       bodyA.vel = bodyA.vel.sub(normal.scale(impulse * invMassA));
 
       if (Physics.allowRigidBodyRotation) {
-        bodyB.rx -= impulse * invMoiB * -rb.cross(normal);
-        bodyA.rx += impulse * invMoiA * -ra.cross(normal);
+        bodyB.angularVelocity -= impulse * invMoiB * -rb.cross(normal);
+        bodyA.angularVelocity += impulse * invMoiA * -ra.cross(normal);
       }
 
       // Split the mtv in half for the two bodies, potentially we could do something smarter here
@@ -201,13 +201,13 @@ export class CollisionContact {
         // apply frictional impulse
         bodyB.vel = bodyB.vel.add(frictionImpulse.scale(invMassB));
         if (Physics.allowRigidBodyRotation) {
-          bodyB.rx += frictionImpulse.dot(t) * invMoiB * rb.cross(t);
+          bodyB.angularVelocity += frictionImpulse.dot(t) * invMoiB * rb.cross(t);
         }
       } else if (this.colliderB.type === CollisionType.Fixed) {
         // apply frictional impulse
         bodyA.vel = bodyA.vel.sub(frictionImpulse.scale(invMassA));
         if (Physics.allowRigidBodyRotation) {
-          bodyA.rx -= frictionImpulse.dot(t) * invMoiA * ra.cross(t);
+          bodyA.angularVelocity -= frictionImpulse.dot(t) * invMoiA * ra.cross(t);
         }
       } else {
         // apply frictional impulse
@@ -216,8 +216,8 @@ export class CollisionContact {
 
         // apply frictional impulse
         if (Physics.allowRigidBodyRotation) {
-          bodyB.rx += frictionImpulse.dot(t) * invMoiB * rb.cross(t);
-          bodyA.rx -= frictionImpulse.dot(t) * invMoiA * ra.cross(t);
+          bodyB.angularVelocity += frictionImpulse.dot(t) * invMoiB * rb.cross(t);
+          bodyA.angularVelocity -= frictionImpulse.dot(t) * invMoiA * ra.cross(t);
         }
       }
     }
