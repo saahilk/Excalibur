@@ -58,4 +58,8 @@ export class RigidBodySystem implements System {
       this.engine.stats.currFrame.physics.narrowphase = afterNarrowphase - beforeNarrowphase;
     }
   }
+
+  debugDraw(ctx: CanvasRenderingContext2D, delta: number) {
+    this._processor.debugDraw(ctx, delta);
+  }
 }

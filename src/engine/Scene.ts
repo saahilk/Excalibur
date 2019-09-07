@@ -394,6 +394,7 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
         s.postupdate(engine, delta);
       }
     }
+
     for (const a of this.actors) {
       if (has_postupdate(a)) {
         a._postupdate(engine, delta);
@@ -535,6 +536,12 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
 
     for (i = 0, len = this.triggers.length; i < len; i++) {
       this.triggers[i].debugDraw(ctx);
+    }
+
+    for (const s of this.systems) {
+      if (s.debugDraw) {
+        s.debugDraw(ctx, 1);
+      }
     }
 
     // this._broadphase.debugDraw(ctx, 20);

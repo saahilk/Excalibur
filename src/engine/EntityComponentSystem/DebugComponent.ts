@@ -11,6 +11,8 @@ export class DebugComponent implements Component {
   public showEntityId = true;
   public showPosition = true;
   public showDrawingBounds = true;
+  public showColliderBounds = true;
+  public showColliderShape = true;
   public showUnitCircle = false;
 
   public clone(): DebugComponent {

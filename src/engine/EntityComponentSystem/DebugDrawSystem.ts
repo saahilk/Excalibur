@@ -6,9 +6,13 @@ import { PreDebugDrawEvent, PostDebugDrawEvent } from '../Events';
 import { TransformComponent, CoordPlane } from './TransformComponent';
 import { DrawingComponent } from './DrawingComponent';
 import { DebugComponent } from './DebugComponent';
+import { Body } from '../Collision/Body';
+import { Color } from '../Drawing/Color';
+import { DrawColliderComponent } from './DrawColliderComponent';
 
+// TODO rename to EntityDebugDrawSystem
 export class DebugDrawSystem implements System {
-  public readonly types: ComponentType[] = [BuiltinComponentType.Transform, BuiltinComponentType.Drawing, BuiltinComponentType.Debug];
+  public readonly types: ComponentType[] = [BuiltinComponentType.Transform, BuiltinComponentType.Debug];
   public ctx: CanvasRenderingContext2D;
 
   constructor(public engine: Engine) {
@@ -18,8 +22,12 @@ export class DebugDrawSystem implements System {
   update(entities: Entity[], _delta: number): void {
     for (const entity of entities) {
       const transform = entity.components[BuiltinComponentType.Transform] as TransformComponent;
-      const drawing = entity.components[BuiltinComponentType.Drawing] as DrawingComponent;
       const debug = entity.components[BuiltinComponentType.Debug] as DebugComponent;
+
+      // Optional components that might be null
+      const drawing = entity.components[BuiltinComponentType.Drawing] as DrawingComponent;
+      const body = entity.components[BuiltinComponentType.Body] as Body;
+      const drawcollider = entity.components[BuiltinComponentType.DrawCollider] as DrawColliderComponent;
 
       this._pushCameraTransform(transform);
 
@@ -60,8 +68,17 @@ export class DebugDrawSystem implements System {
       }
 
       // Draw drawing bounds
-      if (debug.showDrawingBounds && drawing.current) {
+      if (drawing && debug.showDrawingBounds && drawing.current) {
         drawing.current.localBounds.rotate(transform.rotation).debugDraw(this.ctx, debug.color);
+      }
+
+      if (body && debug.showColliderBounds && body.collider) {
+        body.collider.localBounds.rotate(transform.rotation).debugDraw(this.ctx, Color.Red);
+        // body.collider.shape.debugDraw(this.ctx, Color.Green);
+      }
+
+      if (drawcollider && body) {
+        body.collider.localBounds.rotate(transform.rotation).debugDraw(this.ctx, Color.Red);
       }
 
       // Culling Box debug draw
@@ -104,6 +121,15 @@ export class DebugDrawSystem implements System {
 
       entity.emit('postdebugdraw', new PostDebugDrawEvent(this.ctx, entity));
       this.ctx.restore();
+
+      if (body && debug.showColliderShape && body.collider) {
+        body.collider.shape.debugDraw(this.ctx, Color.Green);
+      }
+
+      if (drawcollider && body && debug.showColliderShape && body.collider) {
+        body.collider.shape.debugDraw(this.ctx, Color.Green);
+      }
+
       this._popCameraTransform(transform);
     }
   }

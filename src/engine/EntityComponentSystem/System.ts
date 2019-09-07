@@ -8,7 +8,6 @@ import { Message, MaybeObserver } from '../Util/Observable';
  * Systems are scene specific
  */
 export interface System extends MaybeObserver<AddedSystemEntity | RemovedSystemEntity> {
-  
   /**
    * The types of entities that this system operates on
    */
@@ -34,6 +33,11 @@ export interface System extends MaybeObserver<AddedSystemEntity | RemovedSystemE
    * @param delta Time in milliseconds since the last frame
    */
   postupdate?: (engine: Engine, delta: number) => void;
+
+  /**
+   * Optionally run a debug draw step to visualize the internals of the system
+   */
+  debugDraw?: (ctx: CanvasRenderingContext2D, delta: number) => void;
 }
 
 /**
