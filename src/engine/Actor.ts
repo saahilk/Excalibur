@@ -1435,7 +1435,7 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
     this._preupdate(engine, delta);
 
     // Update action queue
-    this.actionQueue.update(delta);
+    // this.actionQueue.update(delta);
 
     // Update color only opacity
     // if (this.color) {
@@ -1450,11 +1450,12 @@ export class ActorImpl extends Entity implements Actionable, Eventable, PointerE
     // }
 
     // capture old transform
-    this.body.captureOldTransform();
+    // this.body.captureOldTransform();
 
     // Run Euler integration
-    this.body.integrate(delta);
+    // this.body.integrate(delta);
 
+    // TODO remove all traits in favor of components
     // Update actor pipeline (movement, collision detection, event propagation, offscreen culling)
     for (const trait of this.traits) {
       trait.update(this, engine, delta);
