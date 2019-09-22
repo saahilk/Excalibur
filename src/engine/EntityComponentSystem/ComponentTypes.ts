@@ -8,5 +8,6 @@ export enum BuiltinComponentType {
   Action = 'action',
   Offscreen = 'offscreen',
   Body = 'body',
+  Lifetime = 'lifetime',
   Debug = 'debug'
 }

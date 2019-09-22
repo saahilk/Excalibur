@@ -2,7 +2,6 @@ import { Engine } from './../Engine';
 import * as Events from './../Events';
 import { Scene } from '../Scene';
 
-
 export interface _initialize {
   _initialize(engine: Engine): void;
 }
@@ -119,7 +118,7 @@ export interface CanUpdate {
   off(eventName: Events.postupdate, handler?: (event: Events.PostUpdateEvent<any>) => void): void;
 }
 
-export interface CanDraw {
+export interface OnPreDraw {
   /**
    * Overridable implementation
    */
@@ -131,7 +130,9 @@ export interface CanDraw {
   on(eventName: Events.predraw, handler: (event: Events.PreDrawEvent) => void): void;
   once(eventName: Events.predraw, handler: (event: Events.PreDrawEvent) => void): void;
   off(eventName: Events.predraw, handler?: (event: Events.PreDrawEvent) => void): void;
+}
 
+export interface OnPostDraw {
   /**
    * Overridable implementation
    */
@@ -143,6 +144,25 @@ export interface CanDraw {
   on(eventName: Events.postdraw, handler: (event: Events.PostDrawEvent) => void): void;
   once(eventName: Events.postdraw, handler: (event: Events.PostDrawEvent) => void): void;
   off(eventName: Events.postdraw, handler?: (event: Events.PostDrawEvent) => void): void;
+}
+
+export interface CanDraw extends OnPreDraw, OnPostDraw {
+  on(eventName: Events.predraw, handler: (event: Events.PreDrawEvent) => void): void;
+  on(eventName: Events.postdraw, handler: (event: Events.PostDrawEvent) => void): void;
+
+  once(eventName: Events.predraw, handler: (event: Events.PreDrawEvent) => void): void;
+  once(eventName: Events.postdraw, handler: (event: Events.PostDrawEvent) => void): void;
+
+  off(eventName: Events.predraw, handler?: (event: Events.PreDrawEvent) => void): void;
+  off(eventName: Events.postdraw, handler?: (event: Events.PostDrawEvent) => void): void;
+}
+
+export function hasPreDraw(a: any): a is OnPreDraw {
+  return !!a.onPreDraw;
+}
+
+export function hasPostDraw(a: any): a is OnPostDraw {
+  return !!a.onPostDraw;
 }
 
 export interface CanBeKilled {

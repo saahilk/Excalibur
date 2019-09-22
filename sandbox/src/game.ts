@@ -70,7 +70,7 @@ ex.Physics.acc = new ex.Vector(0, 800); // global accel
 var heart = new ex.UIActor({ x: 0, y: 0, width: 20 * 2, height: 20 * 2 });
 var heartSprite = heartTex.asSprite();
 heartSprite.scale.setTo(2, 2);
-heart.addDrawing(heartSprite);
+heart.drawing.add('default', heartSprite);
 game.add(heart);
 
 // Turn on debug diagnostics
@@ -160,10 +160,12 @@ for (var i = 0; i < 36; i++) {
     color: color,
     collisionType: ex.CollisionType.Fixed
   });
+  block.addComponent(new ex.DebugComponent());
   //var block = new ex.Actor(currentX, 350 + Math.random() * 100, tileBlockWidth, tileBlockHeight, color);
-  //block.collisionType = ex.CollisionType.Fixed;
+  block.collisionType = ex.CollisionType.Fixed;
   block.addCollisionGroup('ground');
   block.addDrawing(Animations.Block, blockAnimation);
+  block.drawing.show(Animations.Block.toString());
 
   game.add(block);
 }
@@ -273,7 +275,7 @@ player.addDrawing(Animations.JumpRight, jumpRight);
 player.addDrawing(Animations.JumpLeft, jumpLeft);
 
 // Set default animation
-player.setDrawing(Animations.Idle);
+player.drawing.show(Animations.Idle);
 
 var inAir = true;
 var groundSpeed = 150;
@@ -284,7 +286,7 @@ player.on('postupdate', () => {
   if (game.input.keyboard.isHeld(ex.Input.Keys.Left)) {
     direction = -1;
     if (!inAir) {
-      player.setDrawing(Animations.Left);
+      player.drawing.show(Animations.Left);
     }
     if (inAir) {
       player.vel.x = -airSpeed;
@@ -294,7 +296,7 @@ player.on('postupdate', () => {
   } else if (game.input.keyboard.isHeld(ex.Input.Keys.Right)) {
     direction = 1;
     if (!inAir) {
-      player.setDrawing(Animations.Right);
+      player.drawing.show(Animations.Right);
     }
     if (inAir) {
       player.vel.x = airSpeed;
@@ -308,9 +310,9 @@ player.on('postupdate', () => {
       player.vel.y = -jumpSpeed;
       inAir = true;
       if (direction === 1) {
-        player.setDrawing(Animations.JumpRight);
+        player.drawing.show(Animations.JumpRight);
       } else {
-        player.setDrawing(Animations.JumpLeft);
+        player.drawing.show(Animations.JumpLeft);
       }
       jump.play();
     }
@@ -321,7 +323,7 @@ game.input.keyboard.on('up', (e?: ex.Input.KeyEvent) => {
   if (inAir) return;
 
   if (e.key === ex.Input.Keys.Left || e.key === ex.Input.Keys.Right) {
-    player.setDrawing(Animations.Idle);
+    player.drawing.show(Animations.Idle);
   }
 });
 
@@ -349,13 +351,13 @@ game.input.keyboard.on('down', (keyDown?: ex.Input.KeyEvent) => {
     a.vel.y = 0;
     a.collisionType = ex.CollisionType.Active;
     var inAir = true;
-    a.on('precollision', (data?: ex.PreCollisionEvent) => {
+    a.on('precollision', (data: ex.PreCollisionEvent) => {
       inAir = false;
       if (!data.other) {
         a.vel.y = 0;
       }
     });
-    a.on('postupdate', (data?: ex.PostUpdateEvent) => {
+    a.on('postupdate', (data: ex.PostUpdateEvent) => {
       if (inAir) {
         a.acc.y = 400;
       } else {
@@ -372,7 +374,7 @@ game.input.keyboard.on('down', (keyDown?: ex.Input.KeyEvent) => {
 });
 
 var isColliding = false;
-player.on('precollision', (data?: ex.PreCollisionEvent) => {
+player.on('precollision', (data: ex.PreCollisionEvent) => {
   if (data.side === ex.Side.Bottom) {
     isColliding = true;
 

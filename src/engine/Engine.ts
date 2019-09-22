@@ -48,6 +48,7 @@ import { RigidBodySystem } from './EntityComponentSystem/RigidBodySystem';
 import { MotionSystem } from './EntityComponentSystem/MotionSystem';
 import { ActionSystem } from './EntityComponentSystem/ActionSystem';
 import { Entity } from './EntityComponentSystem/Entity';
+import { LifetimeSystem } from './EntityComponentSystem/LifetimeSystem';
 
 /**
  * Enum representing the different display modes available to Excalibur
@@ -212,7 +213,18 @@ export class Engine extends Class implements CanInitialize, CanUpdate, CanDraw {
    */
   public canvasElementId: string;
 
-  public static DefaultSystems = [ActionSystem, MotionSystem, RigidBodySystem, DrawingSystem, ColliderDrawSystem, DebugDrawSystem];
+  /**
+   * Default list of systems that excalibur will construct for each scene
+   */
+  public static DefaultSystems = [
+    ActionSystem,
+    MotionSystem,
+    RigidBodySystem,
+    DrawingSystem,
+    ColliderDrawSystem,
+    DebugDrawSystem,
+    LifetimeSystem
+  ];
 
   public buildDefaultSystems(): System[] {
     return Engine.DefaultSystems.map((ctor) => new ctor(this));

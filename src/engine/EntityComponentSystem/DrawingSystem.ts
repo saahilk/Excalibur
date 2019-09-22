@@ -8,6 +8,7 @@ import { PreDrawEvent, PostDrawEvent, ExitViewPortEvent, EnterViewPortEvent } fr
 import { SortedList } from '../Util/SortedList';
 import { OffscreenComponent } from './OffscreenComponent';
 import { Vector } from '../Algebra';
+import { hasPreDraw, hasPostDraw } from '../Interfaces/LifecycleEvents';
 
 export class DrawingSystem implements System {
   readonly types: ComponentType[] = [BuiltinComponentType.Transform, BuiltinComponentType.Drawing];
@@ -67,7 +68,7 @@ export class DrawingSystem implements System {
         drawing.current.tick(delta);
       }
 
-      if (drawing.current && drawing.current.loaded && !entity.components[BuiltinComponentType.Offscreen]) {
+      if (!entity.components[BuiltinComponentType.Offscreen]) {
         // Setup transform
         this.ctx.save();
         this.ctx.translate(transform.pos.x, transform.pos.y);
@@ -75,11 +76,14 @@ export class DrawingSystem implements System {
         this.ctx.scale(transform.scale.x, transform.scale.x);
 
         entity.emit('predraw', new PreDrawEvent(this.ctx, delta, entity));
-        // preDraw();
-        if (drawing.current && drawing.visible) {
+        if (hasPreDraw(entity)) {
+          // only gets called if the entity has a Drawing component :(
+          entity.onPreDraw(this.ctx, delta);
+        }
+        if (drawing.visible) {
           drawing.onPreDraw(this.ctx, delta);
 
-          if (drawing.current) {
+          if (drawing.current && drawing.current.loaded) {
             drawing.current.drawWithOptions({
               ctx: this.ctx,
               x: 0,
@@ -92,8 +96,10 @@ export class DrawingSystem implements System {
 
           drawing.onPostDraw(this.ctx, delta);
         }
-        // postDraw();
         entity.emit('postdraw', new PostDrawEvent(this.ctx, delta, entity));
+        if (hasPostDraw(entity)) {
+          entity.onPostDraw(this.ctx, delta);
+        }
 
         this.ctx.restore();
       }
