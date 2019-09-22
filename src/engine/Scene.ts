@@ -47,7 +47,7 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
   /**
    * The actors in the current scene
    */
-  public actors: Actor[] = [];
+  public actors: Entity[] = [];
 
   /**
    * Repository of entities in this [[Scene]]
@@ -102,7 +102,7 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
 
   // private _broadphase: CollisionProcessor = new DynamicTreeCollisionProcessor();
 
-  private _killQueue: Actor[] = [];
+  private _killQueue: Entity[] = [];
   private _triggerKillQueue: Trigger[] = [];
   private _timers: Timer[] = [];
   private _cancelQueue: Timer[] = [];
@@ -451,7 +451,7 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
     this._postupdate(engine, delta);
   }
 
-  private _processKillQueue(killQueue: Actor[], collection: Actor[]) {
+  private _processKillQueue(killQueue: Entity[], collection: Entity[]) {
     // Remove actors from scene graph after being killed
     let actorIndex: number;
     for (const killed of killQueue) {
@@ -530,9 +530,9 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
       this.tileMaps[i].debugDraw(ctx);
     }
 
-    for (i = 0, len = this.actors.length; i < len; i++) {
-      this.actors[i].debugDraw(ctx);
-    }
+    // for (i = 0, len = this.actors.length; i < len; i++) {
+    //   this.actors[i].debugDraw(ctx);
+    // }
 
     for (i = 0, len = this.triggers.length; i < len; i++) {
       this.triggers[i].debugDraw(ctx);
@@ -553,7 +553,7 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
   /**
    * Checks whether an actor is contained in this scene or not
    */
-  public contains(actor: Actor): boolean {
+  public contains(actor: Entity): boolean {
     return this.actors.indexOf(actor) > -1;
   }
 
@@ -606,7 +606,7 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
       return;
     }
 
-    if (entity instanceof Actor) {
+    if (entity instanceof Entity) {
       if (!Util.contains(this.actors, entity)) {
         this._addChild(entity);
       }
@@ -664,7 +664,7 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
       return;
     }
 
-    if (entity instanceof Actor) {
+    if (entity instanceof Entity) {
       this._removeChild(entity);
     }
     if (entity instanceof Timer) {
@@ -700,9 +700,11 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
   /**
    * Adds an actor to the scene, once this is done the actor will be drawn and updated.
    */
-  protected _addChild(actor: Actor) {
+  protected _addChild(actor: Entity) {
     // this._broadphase.track(actor.body);
-    actor.scene = this;
+    if (actor instanceof Actor) {
+      actor.scene = this;
+    }
     if (actor instanceof Trigger) {
       this.triggers.push(actor);
     } else {
@@ -732,21 +734,23 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
   /**
    * Removes an actor from the scene, it will no longer be drawn or updated.
    */
-  protected _removeChild(actor: Actor) {
-    if (!Util.contains(this.actors, actor)) {
+  protected _removeChild(entity: Entity) {
+    if (!Util.contains(this.actors, entity)) {
       return;
     }
     // this._broadphase.untrack(actor.body);
-    if (actor instanceof Trigger) {
-      this._triggerKillQueue.push(actor);
+    if (entity instanceof Trigger) {
+      this._triggerKillQueue.push(entity);
     } else {
-      if (!actor.isKilled()) {
-        actor.kill();
+      if (!entity.isKilled()) {
+        entity.kill();
       }
-      this._killQueue.push(actor);
+      this._killQueue.push(entity);
     }
 
-    actor.parent = null;
+    if (entity instanceof Actor) {
+      entity.parent = null;
+    }
   }
 
   /**
@@ -860,11 +864,13 @@ export class Scene extends Class implements CanInitialize, CanActivate, CanDeact
 
     for (const actor of this.actors) {
       engine.stats.currFrame.actors.alive++;
-      for (const child of actor.children) {
-        if (ActorUtils.isUIActor(child)) {
-          engine.stats.currFrame.actors.ui++;
-        } else {
-          engine.stats.currFrame.actors.alive++;
+      if (actor instanceof Actor) {
+        for (const child of actor.children) {
+          if (ActorUtils.isUIActor(child)) {
+            engine.stats.currFrame.actors.ui++;
+          } else {
+            engine.stats.currFrame.actors.alive++;
+          }
         }
       }
     }

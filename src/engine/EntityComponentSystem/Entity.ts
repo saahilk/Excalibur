@@ -44,6 +44,14 @@ export class Entity extends Class implements OnInitialize, OnPreUpdate, OnPostUp
    */
   public active: boolean = true;
 
+  public kill() {
+    this.active = false;
+  }
+
+  public isKilled() {
+    return !this.active;
+  }
+
   /**
    * The types of the components on the Entity
    */
@@ -86,7 +94,7 @@ export class Entity extends Class implements OnInitialize, OnPreUpdate, OnPostUp
    */
   public clone(): Entity {
     const newEntity = new Entity();
-    for (const c in this.types) {
+    for (const c of this.types) {
       newEntity.addComponent(this.components[c].clone());
     }
     return newEntity;
